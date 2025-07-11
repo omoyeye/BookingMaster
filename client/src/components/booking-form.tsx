@@ -150,50 +150,42 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     }
   }, []);
 
-  // Auto-save form data - THROTTLED
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const dataToSave = {
-        ...formData,
-        selectedExtras,
-        selectedTimeSlot
-      };
-      saveFormData(dataToSave);
-    }, 500);
-    
-    return () => clearTimeout(timeoutId);
-  }, [formData, selectedExtras, selectedTimeSlot]);
+  // Manual update functions instead of useEffect hooks
+  const updatePricing = () => {
+    const pricing = calculatePricing(formData, selectedExtras);
+    onPricingChange(pricing);
+  };
 
-  // Calculate pricing - THROTTLED
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const pricing = calculatePricing(formData, selectedExtras);
-      onPricingChange(pricing);
-    }, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, [formData, selectedExtras]);
+  const saveCurrentFormData = () => {
+    const dataToSave = {
+      ...formData,
+      selectedExtras,
+      selectedTimeSlot
+    };
+    saveFormData(dataToSave);
+    onFormDataChange(formData);
+  };
 
-  // Update parent with form data changes - THROTTLED
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      onFormDataChange(formData);
-    }, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, [formData]);
-
-  // Update parent with extras changes - THROTTLED
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      onExtrasChange(selectedExtras);
-    }, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, [selectedExtras]);
+  const updateExtrasInParent = () => {
+    onExtrasChange(selectedExtras);
+  };
 
   const updateFormData = (updates: Partial<typeof formData>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
+    setFormData(prev => {
+      const newFormData = { ...prev, ...updates };
+      // Update pricing immediately when form data changes
+      setTimeout(() => {
+        const pricing = calculatePricing(newFormData, selectedExtras);
+        onPricingChange(pricing);
+        onFormDataChange(newFormData);
+        saveFormData({
+          ...newFormData,
+          selectedExtras,
+          selectedTimeSlot
+        });
+      }, 0);
+      return newFormData;
+    });
   };
 
   const showNextSection = () => {
@@ -222,27 +214,38 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     }
   };
 
-  // Auto-show additional services section when service extras are loaded - DEBOUNCED
+  // Auto-show additional services section when service extras are loaded
   useEffect(() => {
     if (serviceExtras.length > 0 && formData.serviceType && 
         (visibleSections.includes('propertyDetails') || visibleSections.includes('surfaceDetails')) &&
         !visibleSections.includes('additionalServices')) {
-      const timeoutId = setTimeout(() => {
-        setVisibleSections(prev => [...prev, 'additionalServices']);
-      }, 200);
-      
-      return () => clearTimeout(timeoutId);
+      setVisibleSections(prev => [...prev, 'additionalServices']);
     }
   }, [serviceExtras.length, formData.serviceType]);
 
   const handleExtraToggle = (extra: any) => {
     setSelectedExtras(prev => {
       const exists = prev.find(e => e.id === extra.id);
+      let newExtras;
       if (exists) {
-        return prev.filter(e => e.id !== extra.id);
+        newExtras = prev.filter(e => e.id !== extra.id);
       } else {
-        return [...prev, extra];
+        newExtras = [...prev, extra];
       }
+      
+      // Update pricing and parent immediately
+      setTimeout(() => {
+        const pricing = calculatePricing(formData, newExtras);
+        onPricingChange(pricing);
+        onExtrasChange(newExtras);
+        saveFormData({
+          ...formData,
+          selectedExtras: newExtras,
+          selectedTimeSlot
+        });
+      }, 0);
+      
+      return newExtras;
     });
   };
 
