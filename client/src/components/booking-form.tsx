@@ -150,7 +150,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     }
   }, []);
 
-  // Auto-save form data
+  // Auto-save form data - only when formData changes
   useEffect(() => {
     const dataToSave = {
       ...formData,
@@ -159,9 +159,9 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     };
     saveFormData(dataToSave);
     onFormDataChange(formData);
-  }, [formData, selectedExtras, selectedTimeSlot]);
+  }, [formData]);
 
-  // Calculate pricing
+  // Calculate pricing - only when formData or selectedExtras changes
   useEffect(() => {
     const pricing = calculatePricing(formData, selectedExtras);
     onPricingChange(pricing);
@@ -209,7 +209,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
         !visibleSections.includes('additionalServices')) {
       setVisibleSections(prev => [...prev, 'additionalServices']);
     }
-  }, [serviceExtras, formData.serviceType]);
+  }, [serviceExtras.length, formData.serviceType]);
 
   const handleExtraToggle = (extra: any) => {
     setSelectedExtras(prev => {
