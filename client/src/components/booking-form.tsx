@@ -209,7 +209,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
         !visibleSections.includes('additionalServices')) {
       setVisibleSections(prev => [...prev, 'additionalServices']);
     }
-  }, [serviceExtras, formData.serviceType, visibleSections]);
+  }, [serviceExtras, formData.serviceType]);
 
   const handleExtraToggle = (extra: any) => {
     setSelectedExtras(prev => {

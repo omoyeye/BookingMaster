@@ -1,0 +1,37 @@
+he issue is caused by an infinite re-render loop in the React component. Here's what's happening:
+
+Maximum update depth exceeded error: The console shows "Maximum update depth exceeded" which indicates a component is calling setState repeatedly in an infinite loop.
+
+Root cause in the useEffect at lines 164-169:
+
+useEffect(() => {
+  if (serviceExtras.length > 0 && formData.serviceType && 
+      (visibleSections.includes('propertyDetails') || visibleSections.includes('surfaceDetails')) &&
+      !visibleSections.includes('additionalServices')) {
+    setVisibleSections(prev => [...prev, 'additionalServices']);
+  }
+}, [serviceExtras, formData.serviceType, visibleSections]);
+The infinite loop occurs because:
+
+The useEffect depends on visibleSections
+Inside the useEffect, it modifies visibleSections by adding 'additionalServices'
+This triggers the useEffect to run again
+Since the dependency array includes visibleSections, it creates an endless cycle
+Why the click doesn't work: During the infinite re-render loop, the component state is constantly changing, preventing the click handler from properly executing the handleExtraToggle function.
+
+Solution
+The fix is to remove visibleSections from the dependency array of that useEffect since:
+
+We only want to show the additional services section once when the conditions are met
+We don't need to re-run this effect when visibleSections changes
+The effect should only run when serviceExtras or serviceType changes
+The corrected useEffect should be:
+
+useEffect(() => {
+  if (serviceExtras.length > 0 && formData.serviceType && 
+      (visibleSections.includes('propertyDetails') || visibleSections.includes('surfaceDetails')) &&
+      !visibleSections.includes('additionalServices')) {
+    setVisibleSections(prev => [...prev, 'additionalServices']);
+  }
+}, [serviceExtras, formData.serviceType]); // Remove visibleSections from dependencies
+This will fix the infinite re-render loop and allow the additional services to be selectable again.
