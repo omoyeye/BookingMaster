@@ -1,0 +1,182 @@
+📋 Overall Booking Form Architecture
+The booking form is a multi-step, interactive form that combines server-side Flask/WTForms validation with client-side JavaScript for real-time pricing and dynamic field management. It's designed as a single-page form with progressive disclosure - showing/hiding sections based on service selection.
+🎨 UI/UX Structure & Layout
+Page Layout
+The booking page uses a two-column layout:
+Left Column (8/12 width): Main booking form
+Right Column (4/12 width): Sticky pricing sidebar
+Visual Hierarchy
+The form is organized into 8 numbered sections, each with:
+Primary headings with blue color (text-primary)
+Font Awesome icons for visual appeal
+Bootstrap card design with shadow for elevation
+Progressive numbering (1-8) to guide users through the process
+📝 Detailed Content Structure
+1. Choose Your Service
+Purpose: Service selection that drives the entire form behavior
+Fields:
+Service Type Dropdown: 6 options
+General / Standard Cleaning
+Deep Cleaning
+End of Tenancy Cleaning
+AirBnB Cleaning
+Jet Washing / Garden Cleaning
+Commercial Cleaning
+Frequency Dropdown: 4 options (dynamically filtered)
+One-Time
+Weekly
+Fortnightly
+Monthly
+Duration Dropdown: 4 options
+2 hours
+3 hours
+4 hours
+5 hours
+UX Behavior: Service type selection triggers cascading changes throughout the form
+2. Property Details (Conditional)
+Visibility: Shows for most services, hidden for jet washing
+Layout: 4-column responsive grid for room counts
+Fields:
+Bedrooms (0-10 range)
+Bathrooms (0-10 range)
+Toilets (0-10 range)
+Living Rooms (0-10 range)
+Second Row:
+Property Type: House, Apartment, Office, Other
+Property Status: Vacant, Furnished (conditionally shown)
+2. Surface Details (Alternative)
+Visibility: Only shows for jet washing service
+Layout: 3-column grid
+Fields:
+Surface Type: Patio, Driveway, Deck, Walls, Other
+Surface Material: Concrete, Brick, Wood, Stone, Other
+Square Footage: Numeric input (1-10000 range)
+3. Additional Services
+Purpose: Dynamic extras selection with real-time pricing
+Content:
+Container populated via JavaScript API call to /api/service-extras/{service_type}
+Each extra displays as a checkbox with pricing
+Visual feedback: Selected extras get highlighted styling
+Description text appears below each extra name
+4. Date & Time
+Layout: 2-column grid
+Fields:
+Booking Date: Date picker with validation
+Minimum dates enforced (2 days for general, 7 days for specialized)
+Past dates blocked
+Booking Time: 8 time slots from 9:00 AM to 4:00 PM
+5. Your Details
+Layout: Customer information section
+Fields:
+Full Name: Text input (2-100 chars)
+Email: Email validation
+Phone Number: Text input (10-20 chars)
+6. Address
+Layout: Address collection
+Fields:
+Address Line 1: Required (max 200 chars)
+Address Line 2: Optional (max 200 chars)
+City: Required (max 100 chars)
+Postcode: Required (max 20 chars)
+7. Additional Information
+Fields:
+Special Instructions: Large textarea (max 1000 chars)
+SMS Reminders: Checkbox option
+8. Tip (Optional)
+Layout: 2-column layout with conditional field
+Fields:
+Tip Percentage: Dropdown (No Tip, 10%, 15%, 20%, Custom)
+Custom Tip Amount: Shows only when "Custom" selected
+🎯 Interactive Functionality
+Dynamic Form Behavior
+Service Type Changes Trigger:
+Frequency filtering - different services allow different frequencies
+Duration validation - minimum hours vary by service
+Section visibility - property vs surface details
+Minimum booking dates - lead time requirements
+Extras refresh - service-specific additional options
+Pricing recalculation
+Real-Time Pricing System
+Triggers for Price Updates:
+Service type selection
+Duration changes
+Property details (room counts)
+Extras selection/deselection
+Tip percentage changes
+Custom tip amount input
+Pricing Display Features:
+Animated price changes with scale effect and color highlight
+Detailed breakdown showing each component
+Selected extras list with individual pricing
+Conditional row display (hide when $0)
+Form Validation Layers
+Client-Side Validation:
+Real-time date validation
+Duration minimums based on service type
+Lead time requirements
+Form completeness checking
+Server-Side Validation (WTForms):
+Data type validation
+Email format checking
+Date range validation
+Required field enforcement
+Cross-field validation (e.g., duration vs service type)
+📱 Responsive Design Features
+Mobile Adaptations:
+Stacked layout on small screens
+Full-width form on mobile
+Sticky pricing sidebar becomes bottom section
+Touch-friendly form controls
+Grid Responsiveness:
+4-column room grid becomes 2-column on tablets, 1-column on mobile
+2-column layouts stack vertically on small screens
+💾 Data Persistence Features
+Auto-Save Functionality:
+LocalStorage saving on every input change
+Form data restoration on page reload
+Data cleanup on successful submission
+Session Management:
+Form state preserved across page interactions
+Pricing calculations cached for performance
+🔄 API Integration
+Dynamic Content Loading:
+Service extras fetched via /api/service-extras/{service_type}
+Real-time pricing calculated via client-side JavaScript
+Form submission to Flask backend with comprehensive validation
+📊 Pricing Sidebar Deep Dive
+Content Structure:
+Service display - human-readable service name
+Duration display - formatted hours
+Base price - hourly rate calculation
+Selected extras breakdown - detailed list with individual prices
+Extras total - sum of all selected extras
+Tip amount - percentage or custom calculation
+Subtotal - base + extras
+Total - final amount (VAT removed per requirements)
+Visual Features:
+Conditional row display - only show relevant pricing components
+Real-time updates with smooth animations
+Sticky positioning for constant visibility
+Trust indicators - "Why Choose Us" section with checkmarks
+🎭 User Experience Flow
+Typical User Journey:
+Service Selection → Immediate form adaptation
+Property Details → Pricing updates
+Extras Selection → Real-time price additions
+Date/Time → Availability validation
+Personal Info → Standard form completion
+Review → Pricing sidebar shows final amounts
+Submit → Validation and confirmation redirect
+🚨 Error Handling & Feedback
+Visual Feedback:
+Flash messages for server-side errors
+Inline validation for individual fields
+Error alerts with dismissible notifications
+Field highlighting for validation failures
+User Guidance:
+Progressive disclosure - only show relevant fields
+Contextual help - descriptions for complex fields
+Clear labeling - descriptive field names
+Validation messages - specific error explanations
+This booking form represents a sophisticated balance of functionality and usability, with comprehensive validation, real-time interactivity, and a clean, professional interface that guides users through a complex booking process while maintaining simplicity and clarity.
+
