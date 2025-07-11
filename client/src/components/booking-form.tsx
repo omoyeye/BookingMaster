@@ -202,6 +202,15 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     }
   };
 
+  // Auto-show additional services section when service extras are loaded
+  useEffect(() => {
+    if (serviceExtras.length > 0 && formData.serviceType && 
+        (visibleSections.includes('propertyDetails') || visibleSections.includes('surfaceDetails')) &&
+        !visibleSections.includes('additionalServices')) {
+      setVisibleSections(prev => [...prev, 'additionalServices']);
+    }
+  }, [serviceExtras, formData.serviceType, visibleSections]);
+
   const handleExtraToggle = (extra: any) => {
     setSelectedExtras(prev => {
       const exists = prev.find(e => e.id === extra.id);
@@ -227,7 +236,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
       ...formData,
       duration: parseInt(formData.duration),
       squareFootage: formData.squareFootage ? parseInt(formData.squareFootage) : null,
-      selectedExtras: selectedExtras.map(e => e.id.toString()),
+      selectedExtras: selectedExtras.map(e => e.name),
       basePrice: pricing.basePrice.toString(),
       extrasTotal: pricing.extrasTotal.toString(),
       tipAmount: pricing.tipAmount.toString(),
@@ -500,7 +509,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
                     <div className="flex items-start gap-3">
                       <Checkbox 
                         checked={!!selectedExtras.find(e => e.id === extra.id)}
-                        onChange={() => handleExtraToggle(extra)}
+                        onCheckedChange={() => handleExtraToggle(extra)}
                       />
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-1">

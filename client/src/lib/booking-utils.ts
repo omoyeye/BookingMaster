@@ -1,10 +1,10 @@
 export const SERVICE_DATA = {
-  general: { name: 'General / Standard Cleaning', baseRate: 25, minDuration: 2, minNotice: 2 },
-  deep: { name: 'Deep Cleaning', baseRate: 35, minDuration: 3, minNotice: 3 },
-  tenancy: { name: 'End of Tenancy Cleaning', baseRate: 45, minDuration: 4, minNotice: 7 },
-  airbnb: { name: 'AirBnB Cleaning', baseRate: 30, minDuration: 2, minNotice: 1 },
-  jet: { name: 'Jet Washing / Garden Cleaning', baseRate: 40, minDuration: 2, minNotice: 2 },
-  commercial: { name: 'Commercial Cleaning', baseRate: 50, minDuration: 3, minNotice: 3 }
+  general: { name: 'General / Standard Cleaning', baseRate: 20, minDuration: 2, minNotice: 2 },
+  deep: { name: 'Deep Cleaning', baseRate: 30, minDuration: 3, minNotice: 3 },
+  tenancy: { name: 'End of Tenancy Cleaning', baseRate: 30, minDuration: 4, minNotice: 7 },
+  airbnb: { name: 'AirBnB Cleaning', baseRate: 0, minDuration: 2, minNotice: 1, quoteBased: true },
+  jet: { name: 'Jet Washing / Garden Cleaning', baseRate: 0, minDuration: 2, minNotice: 2, quoteBased: true },
+  commercial: { name: 'Commercial Cleaning', baseRate: 0, minDuration: 3, minNotice: 3, quoteBased: true }
 };
 
 export const FREQUENCY_OPTIONS = [
@@ -51,6 +51,19 @@ export function calculatePricing(formData: any, selectedExtras: any[]) {
   const service = SERVICE_DATA[formData.serviceType as keyof typeof SERVICE_DATA];
   if (!service || !formData.duration) {
     return { basePrice: 0, extrasTotal: 0, tipAmount: 0, subtotal: 0, total: 0 };
+  }
+
+  // Handle quote-based services
+  if (service.quoteBased) {
+    const extrasTotal = selectedExtras.reduce((sum, extra) => sum + parseFloat(extra.price), 0);
+    return {
+      basePrice: 0,
+      extrasTotal,
+      tipAmount: 0,
+      subtotal: extrasTotal,
+      total: extrasTotal,
+      quoteBased: true
+    };
   }
 
   const basePrice = service.baseRate * formData.duration;

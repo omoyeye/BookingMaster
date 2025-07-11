@@ -39,15 +39,34 @@ export default function PricingSidebar({ formData, selectedExtras, pricing }: Pr
             <span className="font-medium">{formData.duration || '-'} hours</span>
           </div>
           
-          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-            <span>Base Price:</span>
-            <span className="font-medium">£{pricing.basePrice.toFixed(2)}</span>
-          </div>
-          
-          {pricing.extrasTotal > 0 && (
+          {pricing.basePrice > 0 && (
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span>Selected Extras:</span>
-              <span className="font-medium">£{pricing.extrasTotal.toFixed(2)}</span>
+              <span>Base Price:</span>
+              <span className="font-medium">£{pricing.basePrice.toFixed(2)}</span>
+            </div>
+          )}
+          
+          {(pricing as any).quoteBased && (
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span>Service:</span>
+              <span className="font-medium text-primary">Quote Required</span>
+            </div>
+          )}
+          
+          {selectedExtras.length > 0 && (
+            <div className="py-2 border-b border-gray-100">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-medium">Selected Extras:</span>
+                <span className="font-medium">£{pricing.extrasTotal.toFixed(2)}</span>
+              </div>
+              <div className="space-y-1">
+                {selectedExtras.map((extra: any, index: number) => (
+                  <div key={index} className="flex justify-between items-center text-sm text-muted-foreground">
+                    <span>• {extra.name}</span>
+                    <span>£{extra.price}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
           

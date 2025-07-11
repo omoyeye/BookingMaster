@@ -118,11 +118,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### January 11, 2025 - Database Integration
+### January 11, 2025 - Database Integration & Service Extras Update
 - **Replaced in-memory storage with PostgreSQL database**
 - **Added DatabaseStorage class** with full CRUD operations
 - **Created database schema** with users, bookings, and service_extras tables
-- **Implemented automatic database seeding** with 24 service extras across 6 service types
-- **Fixed React infinite loop** by memoizing callback functions
+- **Implemented comprehensive service extras system** with 27 specific additional services
+- **Updated service pricing** to match client specifications (Standard £20/hr, Deep £30/hr, Tenancy £30/hr)
+- **Added quote-based pricing** for AirBnB, Jet Washing, and Commercial services
+- **Fixed additional services selection** with proper checkbox handling and auto-display
+- **Enhanced pricing sidebar** to show individual selected extras with names and prices
 - **Resolved all TypeScript compilation errors**
-- **Successfully tested end-to-end** database operations with multiple booking types
+- **Successfully tested end-to-end** database operations with multiple booking types including selected extras
