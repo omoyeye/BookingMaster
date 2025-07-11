@@ -159,18 +159,18 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     };
     saveFormData(dataToSave);
     onFormDataChange(formData);
-  }, [formData, selectedExtras, selectedTimeSlot, onFormDataChange]);
+  }, [formData, selectedExtras, selectedTimeSlot]);
 
   // Calculate pricing
   useEffect(() => {
     const pricing = calculatePricing(formData, selectedExtras);
     onPricingChange(pricing);
-  }, [formData, selectedExtras, onPricingChange]);
+  }, [formData, selectedExtras]);
 
   // Update extras when they change
   useEffect(() => {
     onExtrasChange(selectedExtras);
-  }, [selectedExtras, onExtrasChange]);
+  }, [selectedExtras]);
 
   const updateFormData = (updates: Partial<typeof formData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
