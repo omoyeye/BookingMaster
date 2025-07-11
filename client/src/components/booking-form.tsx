@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,7 @@ interface BookingFormProps {
 }
 
 export default function BookingForm({ onPricingChange, onExtrasChange, onFormDataChange }: BookingFormProps) {
+  const [, setLocation] = useLocation();
   const [formData, setFormData] = useState({
     serviceType: '',
     frequency: '',
@@ -89,43 +91,17 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
       const response = await apiRequest('POST', '/api/bookings', bookingData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (booking) => {
+      // Clear form data
+      clearFormData();
+      
+      // Redirect to confirmation page with booking ID
+      setLocation(`/booking-confirmation?bookingId=${booking.id}`);
+      
       toast({
         title: "Booking Confirmed!",
-        description: "Your booking has been successfully created.",
+        description: "Redirecting to your booking confirmation...",
       });
-      clearFormData();
-      // Reset form
-      setFormData({
-        serviceType: '',
-        frequency: '',
-        duration: '',
-        bedrooms: 2,
-        bathrooms: 1,
-        toilets: 1,
-        livingRooms: 1,
-        propertyType: '',
-        propertyStatus: '',
-        surfaceType: '',
-        surfaceMaterial: '',
-        squareFootage: '',
-        bookingDate: '',
-        bookingTime: '',
-        fullName: '',
-        email: '',
-        phone: '',
-        address1: '',
-        address2: '',
-        city: '',
-        postcode: '',
-        specialInstructions: '',
-        smsReminders: false,
-        tipPercentage: '0',
-        customTip: ''
-      });
-      setSelectedExtras([]);
-      setVisibleSections([]);
-      setSelectedTimeSlot('');
     },
     onError: (error: any) => {
       toast({
