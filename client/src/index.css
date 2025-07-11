@@ -115,11 +115,11 @@
 }
 
 .extra-item:hover {
-  @apply border-primary bg-primary/5;
+  @apply border-primary bg-primary bg-opacity-5;
 }
 
 .extra-item.selected {
-  @apply border-primary bg-primary/10;
+  @apply border-primary bg-primary bg-opacity-10;
 }
 
 /* Time slot styling */
@@ -128,7 +128,7 @@
 }
 
 .time-slot:hover {
-  @apply border-primary bg-primary/5;
+  @apply border-primary bg-primary bg-opacity-5;
 }
 
 .time-slot.selected {

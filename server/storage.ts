@@ -92,7 +92,26 @@ export class MemStorage implements IStorage {
 
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
     const id = this.currentBookingId++;
-    const booking: Booking = { ...insertBooking, id };
+    const booking: Booking = { 
+      ...insertBooking, 
+      id,
+      // Convert undefined values to null for optional fields
+      bedrooms: insertBooking.bedrooms ?? null,
+      bathrooms: insertBooking.bathrooms ?? null,
+      toilets: insertBooking.toilets ?? null,
+      livingRooms: insertBooking.livingRooms ?? null,
+      propertyType: insertBooking.propertyType ?? null,
+      propertyStatus: insertBooking.propertyStatus ?? null,
+      surfaceType: insertBooking.surfaceType ?? null,
+      surfaceMaterial: insertBooking.surfaceMaterial ?? null,
+      squareFootage: insertBooking.squareFootage ?? null,
+      address2: insertBooking.address2 ?? null,
+      specialInstructions: insertBooking.specialInstructions ?? null,
+      customTip: insertBooking.customTip ?? null,
+      smsReminders: insertBooking.smsReminders ?? false,
+      tipPercentage: insertBooking.tipPercentage ?? 0,
+      selectedExtras: insertBooking.selectedExtras ?? [],
+    };
     this.bookings.set(id, booking);
     return booking;
   }
