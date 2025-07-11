@@ -110,7 +110,9 @@ export class MemStorage implements IStorage {
       customTip: insertBooking.customTip ?? null,
       smsReminders: insertBooking.smsReminders ?? false,
       tipPercentage: insertBooking.tipPercentage ?? 0,
-      selectedExtras: insertBooking.selectedExtras ?? [],
+      selectedExtras: insertBooking.selectedExtras ? insertBooking.selectedExtras as string[] : [],
+      extrasTotal: insertBooking.extrasTotal ?? "0",
+      tipAmount: insertBooking.tipAmount ?? "0",
     };
     this.bookings.set(id, booking);
     return booking;

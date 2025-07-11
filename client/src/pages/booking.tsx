@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import BookingForm from "@/components/booking-form";
 import PricingSidebar from "@/components/pricing-sidebar";
@@ -15,6 +15,19 @@ export default function BookingPage() {
     total: 0
   });
 
+  // Memoize callback functions to prevent infinite loops
+  const handlePricingChange = useCallback((newPricing: any) => {
+    setPricing(newPricing);
+  }, []);
+
+  const handleExtrasChange = useCallback((newExtras: any[]) => {
+    setSelectedExtras(newExtras);
+  }, []);
+
+  const handleFormDataChange = useCallback((newFormData: any) => {
+    setFormData(newFormData);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -22,9 +35,9 @@ export default function BookingPage() {
           {/* Main Form Column */}
           <div className="lg:col-span-8">
             <BookingForm
-              onPricingChange={setPricing}
-              onExtrasChange={setSelectedExtras}
-              onFormDataChange={setFormData}
+              onPricingChange={handlePricingChange}
+              onExtrasChange={handleExtrasChange}
+              onFormDataChange={handleFormDataChange}
             />
           </div>
 
