@@ -128,9 +128,13 @@ export function calculatePricing(formData: any, selectedExtras: any[]) {
     baseDuration = (formData.duration || 1) * 60; // Convert hours to minutes
   }
 
-  // Calculate extras total and duration
-  const extrasTotal = selectedExtras.reduce((sum, extra) => sum + parseFloat(extra.price), 0);
+  // Calculate extras total and duration (with quantities)
+  const extrasTotal = selectedExtras.reduce((sum, extra) => {
+    const quantity = extra.quantity || 1;
+    return sum + (parseFloat(extra.price) * quantity);
+  }, 0);
   const extrasDuration = selectedExtras.reduce((sum, extra) => {
+    const quantity = extra.quantity || 1;
     // Parse duration from extra (format: "1hr 30mins" or "45mins" or "1hr")
     const durationStr = extra.duration || '0';
     let minutes = 0;
@@ -144,7 +148,7 @@ export function calculatePricing(formData: any, selectedExtras: any[]) {
       minutes += mins;
     }
     
-    return sum + minutes;
+    return sum + (minutes * quantity);
   }, 0);
   
   const subtotal = basePrice + extrasTotal;

@@ -162,3 +162,12 @@ Preferred communication style: Simple, everyday language.
 - **STREAMLINED USER EXPERIENCE** - Reduced form complexity and confusion by avoiding duplicate service selections
 - **UPDATED DATABASE SEEDING** - Refreshed service extras to include only non-duplicate items like conservatory, patio/balcony, study, and hallway/staircase
 - **MAINTAINED FUNCTIONALITY** - All core booking features remain intact with improved performance and user experience
+
+### January 12, 2025 - Quantity-Based Additional Services
+- **IMPLEMENTED QUANTITY SELECTION** - Replaced checkbox system with +/- buttons for selecting multiple quantities of additional services
+- **ENHANCED PRICING CALCULATION** - Updated pricing logic to properly handle quantities (e.g., 2 dryers = 2 × £20 = £40)
+- **IMPROVED USER INTERFACE** - Added quantity counters with visual feedback showing individual and total prices
+- **UPDATED PRICING SIDEBAR** - Shows quantities in format "Service Name (x2)" with calculated totals
+- **ENHANCED BOOKING SUMMARY** - Displays selected extras with quantities for review before submission
+- **MAINTAINED FORM PERSISTENCE** - Quantities are saved and restored when form data is preserved
+- **STREAMLINED SELECTION PROCESS** - Customers can now easily select multiple quantities of services like appliances, furniture, and room cleaning

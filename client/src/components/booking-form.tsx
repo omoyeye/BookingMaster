@@ -51,6 +51,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
   });
 
   const [selectedExtras, setSelectedExtras] = useState<any[]>([]);
+  const [extrasQuantities, setExtrasQuantities] = useState<{[key: number]: number}>({});
   const [visibleSections, setVisibleSections] = useState<string[]>([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
 
@@ -94,6 +95,9 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
       if (savedData.selectedExtras) {
         setSelectedExtras(savedData.selectedExtras);
       }
+      if (savedData.extrasQuantities) {
+        setExtrasQuantities(savedData.extrasQuantities);
+      }
       if (savedData.selectedTimeSlot) {
         setSelectedTimeSlot(savedData.selectedTimeSlot);
       }
@@ -112,6 +116,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     saveFormData({
       ...newFormData,
       selectedExtras: newExtras,
+      extrasQuantities,
       selectedTimeSlot
     });
   };
@@ -145,13 +150,14 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     updateState(newFormData, []);
   };
 
-  const handleExtraToggle = (extra: any) => {
-    const exists = selectedExtras.find(e => e.id === extra.id);
-    let newExtras;
-    if (exists) {
-      newExtras = selectedExtras.filter(e => e.id !== extra.id);
-    } else {
-      newExtras = [...selectedExtras, extra];
+  const handleExtraQuantityChange = (extra: any, quantity: number) => {
+    const newQuantities = { ...extrasQuantities, [extra.id]: quantity };
+    setExtrasQuantities(newQuantities);
+    
+    // Update selectedExtras based on quantities
+    let newExtras = selectedExtras.filter(e => e.id !== extra.id);
+    if (quantity > 0) {
+      newExtras = [...newExtras, { ...extra, quantity }];
     }
     
     setSelectedExtras(newExtras);
@@ -172,7 +178,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     const pricing = calculatePricing(formData, selectedExtras);
     const bookingData = {
       ...formData,
-      selectedExtras: selectedExtras.map(extra => extra.name),
+      selectedExtras: selectedExtras.map(extra => `${extra.name} (x${extra.quantity || 1})`),
       basePrice: pricing.basePrice.toFixed(2),
       extrasTotal: pricing.extrasTotal.toFixed(2),
       tipAmount: pricing.tipAmount.toFixed(2),
@@ -618,29 +624,55 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
           <CardContent>
             <p className="text-muted-foreground mb-4">Select any additional services you'd like to include</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {serviceExtras.map((extra: any) => (
-                <div 
-                  key={extra.id} 
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all hover:border-primary hover:bg-primary/5 ${
-                    selectedExtras.find(e => e.id === extra.id) ? 'border-primary bg-primary/5' : 'border-border'
-                  }`}
-                  onClick={() => handleExtraToggle(extra)}
-                >
-                  <div className="flex items-start gap-3">
-                    <Checkbox 
-                      checked={!!selectedExtras.find(e => e.id === extra.id)}
-                      onCheckedChange={() => handleExtraToggle(extra)}
-                    />
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start mb-1">
-                        <h4 className="font-medium">{extra.name}</h4>
-                        <span className="text-sm font-semibold text-primary">£{extra.price}</span>
+              {serviceExtras.map((extra: any) => {
+                const quantity = extrasQuantities[extra.id] || 0;
+                return (
+                  <div 
+                    key={extra.id} 
+                    className={`border-2 rounded-lg p-4 transition-all ${
+                      quantity > 0 ? 'border-primary bg-primary/5' : 'border-border'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-1">
+                          <h4 className="font-medium">{extra.name}</h4>
+                          <span className="text-sm font-semibold text-primary">£{extra.price}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">{extra.description}</p>
+                        
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleExtraQuantityChange(extra, Math.max(0, quantity - 1))}
+                            disabled={quantity <= 0}
+                            className="w-8 h-8 p-0"
+                          >
+                            -
+                          </Button>
+                          <span className="w-8 text-center text-sm font-medium">{quantity}</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleExtraQuantityChange(extra, quantity + 1)}
+                            className="w-8 h-8 p-0"
+                          >
+                            +
+                          </Button>
+                          {quantity > 0 && (
+                            <span className="text-sm text-muted-foreground ml-2">
+                              Total: £{(parseFloat(extra.price) * quantity).toFixed(2)}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">{extra.description}</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             
             <div className="mt-4 pt-4 border-t">
@@ -964,7 +996,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
                   <p><strong>Time:</strong> {selectedTimeSlot}</p>
                   <p><strong>Duration:</strong> {formData.duration} hours</p>
                   {selectedExtras.length > 0 && (
-                    <p><strong>Extras:</strong> {selectedExtras.map(e => e.name).join(', ')}</p>
+                    <p><strong>Extras:</strong> {selectedExtras.map(e => `${e.name} (x${e.quantity || 1})`).join(', ')}</p>
                   )}
                 </div>
               </div>

@@ -84,12 +84,16 @@ export default function PricingSidebar({ formData, selectedExtras, pricing }: Pr
                 <span className="font-medium">£{pricing.extrasTotal.toFixed(2)}</span>
               </div>
               <div className="space-y-1">
-                {selectedExtras.map((extra: any, index: number) => (
-                  <div key={index} className="flex justify-between items-center text-sm text-muted-foreground">
-                    <span>• {extra.name} {extra.duration && `(${extra.duration})`}</span>
-                    <span>£{extra.price}</span>
-                  </div>
-                ))}
+                {selectedExtras.map((extra: any, index: number) => {
+                  const quantity = extra.quantity || 1;
+                  const totalPrice = parseFloat(extra.price) * quantity;
+                  return (
+                    <div key={index} className="flex justify-between items-center text-sm text-muted-foreground">
+                      <span>• {extra.name} {quantity > 1 ? `(x${quantity})` : ''} {extra.duration && `(${extra.duration})`}</span>
+                      <span>£{totalPrice.toFixed(2)}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
