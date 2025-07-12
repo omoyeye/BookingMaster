@@ -10,10 +10,13 @@ export default function BookingPage() {
   const [selectedExtras, setSelectedExtras] = useState([]);
   const [pricing, setPricing] = useState({
     basePrice: 0,
+    baseDuration: 0,
     extrasTotal: 0,
+    extrasDuration: 0,
     tipAmount: 0,
     subtotal: 0,
-    total: 0
+    total: 0,
+    totalDuration: 0
   });
 
   // Memoize callback functions to prevent infinite loops

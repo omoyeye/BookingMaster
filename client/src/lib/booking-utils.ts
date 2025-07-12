@@ -49,42 +49,113 @@ export function calculateMinDate(serviceType: string): string {
 
 export function calculatePricing(formData: any, selectedExtras: any[]) {
   const service = SERVICE_DATA[formData.serviceType as keyof typeof SERVICE_DATA];
-  if (!service || !formData.duration) {
-    return { basePrice: 0, extrasTotal: 0, tipAmount: 0, subtotal: 0, total: 0 };
-  }
-
-  // Handle quote-based services
-  if (service.quoteBased) {
-    const extrasTotal = selectedExtras.reduce((sum, extra) => sum + parseFloat(extra.price), 0);
-    return {
-      basePrice: 0,
-      extrasTotal,
-      tipAmount: 0,
-      subtotal: extrasTotal,
-      total: extrasTotal,
-      quoteBased: true
+  if (!service) {
+    return { 
+      basePrice: 0, 
+      baseDuration: 0, 
+      extrasTotal: 0, 
+      extrasDuration: 0, 
+      tipAmount: 0, 
+      subtotal: 0, 
+      total: 0, 
+      totalDuration: 0 
     };
   }
 
-  const basePrice = service.baseRate * formData.duration;
+  let basePrice = 0;
+  let baseDuration = 0;
+
+  // Dynamic pricing for Deep Cleaning and End of Tenancy
+  if (formData.serviceType === 'deep' || formData.serviceType === 'tenancy') {
+    const bedrooms = parseInt(formData.bedrooms) || 0;
+    const bathrooms = parseInt(formData.bathrooms) || 0;
+    const toilets = parseInt(formData.toilets) || 0;
+    const livingRooms = parseInt(formData.livingRooms) || 0;
+    
+    // Base pricing structure for room-based services
+    const roomPricing = {
+      bedroom: { price: 20, duration: 60 }, // £20 per hour
+      bathroom: { price: 25, duration: 60 }, // £25 per hour  
+      toilet: { price: 15, duration: 30 }, // £15 per 30 mins
+      livingRoom: { price: 25, duration: 60 }, // £25 per hour
+    };
+    
+    // Calculate room-based pricing
+    basePrice = (bedrooms * roomPricing.bedroom.price) + 
+                (bathrooms * roomPricing.bathroom.price) + 
+                (toilets * roomPricing.toilet.price) + 
+                (livingRooms * roomPricing.livingRoom.price);
+    
+    baseDuration = (bedrooms * roomPricing.bedroom.duration) + 
+                   (bathrooms * roomPricing.bathroom.duration) + 
+                   (toilets * roomPricing.toilet.duration) + 
+                   (livingRooms * roomPricing.livingRoom.duration);
+    
+    // Minimum base price for these services
+    basePrice = Math.max(basePrice, 60); // Minimum £60
+    baseDuration = Math.max(baseDuration, 120); // Minimum 2 hours
+  } else {
+    // Handle quote-based services
+    if (service.quoteBased) {
+      const extrasTotal = selectedExtras.reduce((sum, extra) => sum + parseFloat(extra.price), 0);
+      return {
+        basePrice: 0,
+        baseDuration: 0,
+        extrasTotal,
+        extrasDuration: 0,
+        tipAmount: 0,
+        subtotal: extrasTotal,
+        total: extrasTotal,
+        totalDuration: 0,
+        quoteBased: true
+      };
+    }
+    
+    // Standard pricing for other services
+    basePrice = service.baseRate * (formData.duration || 1);
+    baseDuration = (formData.duration || 1) * 60; // Convert hours to minutes
+  }
+
+  // Calculate extras total and duration
   const extrasTotal = selectedExtras.reduce((sum, extra) => sum + parseFloat(extra.price), 0);
+  const extrasDuration = selectedExtras.reduce((sum, extra) => {
+    // Parse duration from extra (format: "1hr 30mins" or "45mins" or "1hr")
+    const durationStr = extra.duration || '0';
+    let minutes = 0;
+    
+    if (durationStr.includes('hr')) {
+      const hours = parseInt(durationStr.match(/(\d+)hr/)?.[1] || '0');
+      minutes += hours * 60;
+    }
+    if (durationStr.includes('mins')) {
+      const mins = parseInt(durationStr.match(/(\d+)mins/)?.[1] || '0');
+      minutes += mins;
+    }
+    
+    return sum + minutes;
+  }, 0);
+  
   const subtotal = basePrice + extrasTotal;
   
   let tipAmount = 0;
   if (formData.tipPercentage === 'custom') {
     tipAmount = parseFloat(formData.customTip) || 0;
-  } else {
+  } else if (formData.tipPercentage && formData.tipPercentage !== '0') {
     tipAmount = subtotal * (parseInt(formData.tipPercentage) / 100);
   }
 
   const total = subtotal + tipAmount;
+  const totalDuration = baseDuration + extrasDuration;
 
   return {
     basePrice,
+    baseDuration,
     extrasTotal,
+    extrasDuration,
     tipAmount,
     subtotal,
-    total
+    total,
+    totalDuration
   };
 }
 

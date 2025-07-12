@@ -7,10 +7,14 @@ interface PricingSidebarProps {
   selectedExtras: any[];
   pricing: {
     basePrice: number;
+    baseDuration?: number;
     extrasTotal: number;
+    extrasDuration?: number;
     tipAmount: number;
     subtotal: number;
     total: number;
+    totalDuration?: number;
+    quoteBased?: boolean;
   };
 }
 
@@ -36,7 +40,12 @@ export default function PricingSidebar({ formData, selectedExtras, pricing }: Pr
           
           <div className="flex justify-between items-center py-2 border-b border-gray-100">
             <span>Duration:</span>
-            <span className="font-medium">{formData.duration || '-'} hours</span>
+            <span className="font-medium">
+              {pricing.totalDuration ? 
+                `${Math.floor(pricing.totalDuration / 60)}h ${pricing.totalDuration % 60 > 0 ? `${pricing.totalDuration % 60}m` : ''}`.trim() :
+                `${formData.duration || '-'} hours`
+              }
+            </span>
           </div>
           
           {pricing.basePrice > 0 && (
@@ -62,7 +71,7 @@ export default function PricingSidebar({ formData, selectedExtras, pricing }: Pr
               <div className="space-y-1">
                 {selectedExtras.map((extra: any, index: number) => (
                   <div key={index} className="flex justify-between items-center text-sm text-muted-foreground">
-                    <span>• {extra.name}</span>
+                    <span>• {extra.name} {extra.duration && `(${extra.duration})`}</span>
                     <span>£{extra.price}</span>
                   </div>
                 ))}

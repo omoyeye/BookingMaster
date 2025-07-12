@@ -49,6 +49,7 @@ export const serviceExtras = pgTable("service_extras", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   price: decimal("price").notNull(),
+  duration: text("duration"), // Duration in format like "1hr", "45mins", "1hr:30mins"
 });
 
 export const insertBookingSchema = createInsertSchema(bookings).omit({
