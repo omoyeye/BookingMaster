@@ -21,6 +21,7 @@ export const bookings = pgTable("bookings", {
   kitchen: integer("kitchen"),
   utilityRoom: integer("utility_room"),
   carpetCleaning: integer("carpet_cleaning"),
+  notifyMoreTime: boolean("notify_more_time").default(false),
   propertyType: text("property_type"),
   propertyStatus: text("property_status"),
   surfaceType: text("surface_type"),

@@ -213,246 +213,389 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="frequency">Frequency</Label>
-              <Select value={formData.frequency} onValueChange={(value) => {
-                const newFormData = { ...formData, frequency: value };
-                setFormData(newFormData);
-                updateState(newFormData, selectedExtras);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select frequency..." />
-                </SelectTrigger>
-                <SelectContent>
+            {formData.serviceType === 'general' && (
+              <div>
+                <Label htmlFor="frequency">Frequency</Label>
+                <div className="grid grid-cols-4 gap-2 mt-2">
                   {FREQUENCY_OPTIONS.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant={formData.frequency === option.value ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        const newFormData = { ...formData, frequency: option.value };
+                        setFormData(newFormData);
+                        updateState(newFormData, selectedExtras);
+                      }}
+                      className="text-xs"
+                    >
                       {option.label}
-                    </SelectItem>
+                    </Button>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
+                </div>
+              </div>
+            )}
+            
+            {formData.serviceType !== 'general' && (
+              <div>
+                <Label htmlFor="frequency">Frequency</Label>
+                <Select value={formData.frequency} onValueChange={(value) => {
+                  const newFormData = { ...formData, frequency: value };
+                  setFormData(newFormData);
+                  updateState(newFormData, selectedExtras);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select frequency..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FREQUENCY_OPTIONS.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Property Details */}
+      {/* Property Details - Simplified for General/Standard Cleaning */}
       {visibleSections.includes('propertyDetails') && (
         <Card className="shadow-md animate-in fade-in-0 slide-in-from-bottom-4">
           <CardHeader>
             <CardTitle className="text-primary flex items-center">
               {renderSectionNumber(2)}
               <Home className="h-5 w-5 mr-2" />
-              Property Details
+              {formData.serviceType === 'general' ? 'Select Time Duration' : 'Property Details'}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Left Column */}
+            {/* General/Standard Cleaning - Simple Duration Selection */}
+            {formData.serviceType === 'general' && (
+              <div className="space-y-6">
+                <div>
+                  <Label htmlFor="duration" className="text-lg font-medium">Select Time Duration</Label>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Hours</Label>
+                      <Select value={Math.floor(formData.duration || 2).toString()} onValueChange={(value) => {
+                        const hours = parseInt(value);
+                        const minutes = (formData.duration || 2) % 1 === 0.5 ? 30 : 0;
+                        const newFormData = { ...formData, duration: hours + (minutes / 60) };
+                        setFormData(newFormData);
+                        updateState(newFormData, selectedExtras);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="02" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="2">02</SelectItem>
+                          <SelectItem value="3">03</SelectItem>
+                          <SelectItem value="4">04</SelectItem>
+                          <SelectItem value="5">05</SelectItem>
+                          <SelectItem value="6">06</SelectItem>
+                          <SelectItem value="7">07</SelectItem>
+                          <SelectItem value="8">08</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Minutes</Label>
+                      <Select value={((formData.duration || 2) % 1 === 0.5 ? 30 : 0).toString()} onValueChange={(value) => {
+                        const hours = Math.floor(formData.duration || 2);
+                        const minutes = parseInt(value);
+                        const newFormData = { ...formData, duration: hours + (minutes / 60) };
+                        setFormData(newFormData);
+                        updateState(newFormData, selectedExtras);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="00" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">00</SelectItem>
+                          <SelectItem value="30">30</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="notifyMoreTime" 
+                    checked={formData.notifyMoreTime || false}
+                    onCheckedChange={(checked) => {
+                      const newFormData = { ...formData, notifyMoreTime: checked };
+                      setFormData(newFormData);
+                      updateState(newFormData, selectedExtras);
+                    }}
+                  />
+                  <Label htmlFor="notifyMoreTime" className="text-sm">
+                    Notify me if the job requires more time.
+                  </Label>
+                </div>
+                
+                <div className="mt-6 pt-4 border-t">
+                  <Button 
+                    type="button" 
+                    onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
+                    className="w-full"
+                  >
+                    Continue to Additional Services
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {/* Deep Cleaning and End of Tenancy - Detailed Room Selection */}
+            {(formData.serviceType === 'deep' || formData.serviceType === 'tenancy') && (
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* Left Column */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="bedrooms">Bedrooms</Label>
+                      <Select value={formData.bedrooms?.toString() || "0"} onValueChange={(value) => {
+                        const newFormData = { ...formData, bedrooms: parseInt(value) };
+                        setFormData(newFormData);
+                        updateState(newFormData, selectedExtras);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="cloakroomToilets">Cloakroom Toilets</Label>
+                      <Select value={formData.toilets?.toString() || "0"} onValueChange={(value) => {
+                        const newFormData = { ...formData, toilets: parseInt(value) };
+                        setFormData(newFormData);
+                        updateState(newFormData, selectedExtras);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="receptionRoom">Reception Room</Label>
+                      <Select value={formData.livingRooms?.toString() || "0"} onValueChange={(value) => {
+                        const newFormData = { ...formData, livingRooms: parseInt(value) };
+                        setFormData(newFormData);
+                        updateState(newFormData, selectedExtras);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="carpetCleaning">Carpet Cleaning</Label>
+                      <Select value={formData.carpetCleaning?.toString() || "0"} onValueChange={(value) => {
+                        const newFormData = { ...formData, carpetCleaning: parseInt(value) };
+                        setFormData(newFormData);
+                        updateState(newFormData, selectedExtras);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {/* Right Column */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="bathrooms">Bathrooms</Label>
+                      <Select value={formData.bathrooms?.toString() || "0"} onValueChange={(value) => {
+                        const newFormData = { ...formData, bathrooms: parseInt(value) };
+                        setFormData(newFormData);
+                        updateState(newFormData, selectedExtras);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="kitchen">Kitchen</Label>
+                      <Select value={formData.kitchen?.toString() || "1"} onValueChange={(value) => {
+                        const newFormData = { ...formData, kitchen: parseInt(value) };
+                        setFormData(newFormData);
+                        updateState(newFormData, selectedExtras);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="1" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[0,1,2,3,4,5].map(num => (
+                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="utilityRoom">Utility Room</Label>
+                      <Select value={formData.utilityRoom?.toString() || "0"} onValueChange={(value) => {
+                        const newFormData = { ...formData, utilityRoom: parseInt(value) };
+                        setFormData(newFormData);
+                        updateState(newFormData, selectedExtras);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[0,1,2,3,4,5].map(num => (
+                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="sqFt">Sq Ft</Label>
+                      <Select value={formData.squareFootage?.toString() || "1"} onValueChange={(value) => {
+                        const newFormData = { ...formData, squareFootage: parseInt(value.split('-')[0]) };
+                        setFormData(newFormData);
+                        updateState(newFormData, selectedExtras);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="1 - 1200 Sq Ft" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1-1200">1 - 1200 Sq Ft</SelectItem>
+                          <SelectItem value="1201-2000">1201 - 2000 Sq Ft</SelectItem>
+                          <SelectItem value="2001-3000">2001 - 3000 Sq Ft</SelectItem>
+                          <SelectItem value="3001-4000">3001 - 4000 Sq Ft</SelectItem>
+                          <SelectItem value="4001-5000">4001 - 5000 Sq Ft</SelectItem>
+                          <SelectItem value="5001+">5001+ Sq Ft</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="propertyType">Property Type</Label>
+                    <Select value={formData.propertyType} onValueChange={(value) => {
+                      const newFormData = { ...formData, propertyType: value };
+                      setFormData(newFormData);
+                      if (value) showNextSection();
+                      updateState(newFormData, selectedExtras);
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select property type..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="house">House</SelectItem>
+                        <SelectItem value="apartment">Apartment</SelectItem>
+                        <SelectItem value="office">Office</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="propertyStatus">Property Status</Label>
+                    <Select value={formData.propertyStatus} onValueChange={(value) => {
+                      const newFormData = { ...formData, propertyStatus: value };
+                      setFormData(newFormData);
+                      updateState(newFormData, selectedExtras);
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="vacant">Vacant</SelectItem>
+                        <SelectItem value="furnished">Furnished</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {/* Show Additional Services Button */}
+                {serviceExtras.length > 0 && !visibleSections.includes('additionalServices') && (
+                  <div className="mt-4 pt-4 border-t">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
+                      className="w-full"
+                    >
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Add Additional Services
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Other Services - Keep existing simple form */}
+            {formData.serviceType && !['general', 'deep', 'tenancy'].includes(formData.serviceType) && (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="bedrooms">Bedrooms</Label>
-                  <Select value={formData.bedrooms?.toString() || "0"} onValueChange={(value) => {
-                    const newFormData = { ...formData, bedrooms: parseInt(value) };
+                  <Label htmlFor="duration">Duration (hours)</Label>
+                  <Select value={formData.duration?.toString() || "2"} onValueChange={(value) => {
+                    const newFormData = { ...formData, duration: parseInt(value) };
                     setFormData(newFormData);
                     updateState(newFormData, selectedExtras);
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="0" />
+                      <SelectValue placeholder="Select duration..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
-                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      {DURATION_OPTIONS.map(option => (
+                        <SelectItem key={option.value} value={option.value.toString()}>
+                          {option.label}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 
-                <div>
-                  <Label htmlFor="cloakroomToilets">Cloakroom Toilets</Label>
-                  <Select value={formData.toilets?.toString() || "0"} onValueChange={(value) => {
-                    const newFormData = { ...formData, toilets: parseInt(value) };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="0" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
-                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="mt-4 pt-4 border-t">
+                  <Button 
+                    type="button" 
+                    onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
+                    className="w-full"
+                  >
+                    Continue to Additional Services
+                  </Button>
                 </div>
-                
-                <div>
-                  <Label htmlFor="receptionRoom">Reception Room</Label>
-                  <Select value={formData.livingRooms?.toString() || "0"} onValueChange={(value) => {
-                    const newFormData = { ...formData, livingRooms: parseInt(value) };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="0" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
-                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="carpetCleaning">Carpet Cleaning</Label>
-                  <Select value={formData.carpetCleaning?.toString() || "0"} onValueChange={(value) => {
-                    const newFormData = { ...formData, carpetCleaning: parseInt(value) };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="0" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
-                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              {/* Right Column */}
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="bathrooms">Bathrooms</Label>
-                  <Select value={formData.bathrooms?.toString() || "0"} onValueChange={(value) => {
-                    const newFormData = { ...formData, bathrooms: parseInt(value) };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="0" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
-                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="kitchen">Kitchen</Label>
-                  <Select value={formData.kitchen?.toString() || "1"} onValueChange={(value) => {
-                    const newFormData = { ...formData, kitchen: parseInt(value) };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="1" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[0,1,2,3,4,5].map(num => (
-                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="utilityRoom">Utility Room</Label>
-                  <Select value={formData.utilityRoom?.toString() || "0"} onValueChange={(value) => {
-                    const newFormData = { ...formData, utilityRoom: parseInt(value) };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="0" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[0,1,2,3,4,5].map(num => (
-                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="sqFt">Sq Ft</Label>
-                  <Select value={formData.squareFootage?.toString() || "1"} onValueChange={(value) => {
-                    const newFormData = { ...formData, squareFootage: parseInt(value.split('-')[0]) };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="1 - 1200 Sq Ft" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1-1200">1 - 1200 Sq Ft</SelectItem>
-                      <SelectItem value="1201-2000">1201 - 2000 Sq Ft</SelectItem>
-                      <SelectItem value="2001-3000">2001 - 3000 Sq Ft</SelectItem>
-                      <SelectItem value="3001-4000">3001 - 4000 Sq Ft</SelectItem>
-                      <SelectItem value="4001-5000">4001 - 5000 Sq Ft</SelectItem>
-                      <SelectItem value="5001+">5001+ Sq Ft</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="propertyType">Property Type</Label>
-                <Select value={formData.propertyType} onValueChange={(value) => {
-                  const newFormData = { ...formData, propertyType: value };
-                  setFormData(newFormData);
-                  if (value) showNextSection();
-                  updateState(newFormData, selectedExtras);
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select property type..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="house">House</SelectItem>
-                    <SelectItem value="apartment">Apartment</SelectItem>
-                    <SelectItem value="office">Office</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="propertyStatus">Property Status</Label>
-                <Select value={formData.propertyStatus} onValueChange={(value) => {
-                  const newFormData = { ...formData, propertyStatus: value };
-                  setFormData(newFormData);
-                  updateState(newFormData, selectedExtras);
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="vacant">Vacant</SelectItem>
-                    <SelectItem value="furnished">Furnished</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            {/* Show Additional Services Button */}
-            {serviceExtras.length > 0 && !visibleSections.includes('additionalServices') && (
-              <div className="mt-4 pt-4 border-t">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
-                  className="w-full"
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Add Additional Services
-                </Button>
               </div>
             )}
           </CardContent>
