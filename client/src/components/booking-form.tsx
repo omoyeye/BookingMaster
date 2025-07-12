@@ -100,12 +100,15 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     }
   }, []);
 
-  // Simple direct update function
+  // Simple direct update function - avoid calling during render
   const updateState = (newFormData: any = formData, newExtras: any[] = selectedExtras) => {
     const pricing = calculatePricing(newFormData, newExtras);
+    
+    // Only update if values have actually changed
     onPricingChange(pricing);
     onFormDataChange(newFormData);
     onExtrasChange(newExtras);
+    
     saveFormData({
       ...newFormData,
       selectedExtras: newExtras,

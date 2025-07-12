@@ -21,15 +21,30 @@ export default function BookingPage() {
 
   // Memoize callback functions to prevent infinite loops
   const handlePricingChange = useCallback((newPricing: any) => {
-    setPricing(newPricing);
+    setPricing(prev => {
+      if (JSON.stringify(prev) !== JSON.stringify(newPricing)) {
+        return newPricing;
+      }
+      return prev;
+    });
   }, []);
 
   const handleExtrasChange = useCallback((newExtras: any[]) => {
-    setSelectedExtras(newExtras);
+    setSelectedExtras(prev => {
+      if (JSON.stringify(prev) !== JSON.stringify(newExtras)) {
+        return newExtras;
+      }
+      return prev;
+    });
   }, []);
 
   const handleFormDataChange = useCallback((newFormData: any) => {
-    setFormData(newFormData);
+    setFormData(prev => {
+      if (JSON.stringify(prev) !== JSON.stringify(newFormData)) {
+        return newFormData;
+      }
+      return prev;
+    });
   }, []);
 
   return (
