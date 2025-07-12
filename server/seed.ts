@@ -9,14 +9,8 @@ async function seedDatabase() {
   
   // Insert service extras - applies to all service types
   const baseExtras = [
-    // Rooms
-    { name: 'Reception', description: 'Additional reception room cleaning', price: '20' },
-    { name: 'Bathroom/Ensuite', description: 'Extra bathroom or ensuite cleaning', price: '25' },
-    { name: 'Bedroom', description: 'Additional bedroom cleaning', price: '20' },
-    { name: 'Clock room toilet', description: 'Cloakroom toilet cleaning', price: '15' },
-    { name: 'Kitchen', description: 'Additional kitchen deep clean', price: '25' },
+    // Additional rooms not covered in property details
     { name: 'Conservatory', description: 'Conservatory cleaning', price: '30' },
-    { name: 'Utility', description: 'Utility room cleaning', price: '10' },
     { name: 'Patio/balcony', description: 'Patio or balcony cleaning', price: '30' },
     { name: 'Study', description: 'Study room cleaning', price: '20' },
     { name: 'Hallway/Staircase', description: 'Hallway and staircase cleaning', price: '10' },
@@ -31,8 +25,7 @@ async function seedDatabase() {
     { name: 'Dryer', description: 'Dryer cleaning', price: '20' },
     { name: 'Dishwasher', description: 'Dishwasher cleaning', price: '20' },
     
-    // Furniture & Carpet
-    { name: 'Carpet', description: 'Carpet cleaning', price: '35' },
+    // Furniture (Carpet cleaning is handled in property details)
     { name: 'Single mattress', description: 'Single mattress cleaning', price: '25' },
     { name: 'Double mattress', description: 'Double mattress cleaning', price: '35' },
     { name: 'King size mattress', description: 'King size mattress cleaning', price: '45' },
