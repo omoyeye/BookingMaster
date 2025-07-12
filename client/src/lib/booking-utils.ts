@@ -71,25 +71,37 @@ export function calculatePricing(formData: any, selectedExtras: any[]) {
     const bathrooms = parseInt(formData.bathrooms) || 0;
     const toilets = parseInt(formData.toilets) || 0;
     const livingRooms = parseInt(formData.livingRooms) || 0;
+    const kitchen = parseInt(formData.kitchen) || 0;
+    const utilityRoom = parseInt(formData.utilityRoom) || 0;
+    const carpetCleaning = parseInt(formData.carpetCleaning) || 0;
     
     // Base pricing structure for room-based services
     const roomPricing = {
       bedroom: { price: 20, duration: 60 }, // £20 per hour
       bathroom: { price: 25, duration: 60 }, // £25 per hour  
       toilet: { price: 15, duration: 30 }, // £15 per 30 mins
-      livingRoom: { price: 25, duration: 60 }, // £25 per hour
+      livingRoom: { price: 25, duration: 60 }, // £25 per hour (reception room)
+      kitchen: { price: 25, duration: 60 }, // £25 per hour
+      utilityRoom: { price: 15, duration: 30 }, // £15 per 30 mins
+      carpetCleaning: { price: 35, duration: 60 }, // £35 per hour
     };
     
     // Calculate room-based pricing
     basePrice = (bedrooms * roomPricing.bedroom.price) + 
                 (bathrooms * roomPricing.bathroom.price) + 
                 (toilets * roomPricing.toilet.price) + 
-                (livingRooms * roomPricing.livingRoom.price);
+                (livingRooms * roomPricing.livingRoom.price) +
+                (kitchen * roomPricing.kitchen.price) +
+                (utilityRoom * roomPricing.utilityRoom.price) +
+                (carpetCleaning * roomPricing.carpetCleaning.price);
     
     baseDuration = (bedrooms * roomPricing.bedroom.duration) + 
                    (bathrooms * roomPricing.bathroom.duration) + 
                    (toilets * roomPricing.toilet.duration) + 
-                   (livingRooms * roomPricing.livingRoom.duration);
+                   (livingRooms * roomPricing.livingRoom.duration) +
+                   (kitchen * roomPricing.kitchen.duration) +
+                   (utilityRoom * roomPricing.utilityRoom.duration) +
+                   (carpetCleaning * roomPricing.carpetCleaning.duration);
     
     // Minimum base price for these services
     basePrice = Math.max(basePrice, 60); // Minimum £60

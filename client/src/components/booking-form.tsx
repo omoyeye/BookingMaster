@@ -247,62 +247,158 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <div>
-                <Label htmlFor="bedrooms">Bedrooms</Label>
-                <Input 
-                  type="number" 
-                  min="0" 
-                  max="10" 
-                  value={formData.bedrooms}
-                  onChange={(e) => {
-                    const newFormData = { ...formData, bedrooms: parseInt(e.target.value) };
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Left Column */}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="bedrooms">Bedrooms</Label>
+                  <Select value={formData.bedrooms?.toString() || "0"} onValueChange={(value) => {
+                    const newFormData = { ...formData, bedrooms: parseInt(value) };
                     setFormData(newFormData);
                     updateState(newFormData, selectedExtras);
-                  }}
-                />
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="0" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="cloakroomToilets">Cloakroom Toilets</Label>
+                  <Select value={formData.toilets?.toString() || "0"} onValueChange={(value) => {
+                    const newFormData = { ...formData, toilets: parseInt(value) };
+                    setFormData(newFormData);
+                    updateState(newFormData, selectedExtras);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="0" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="receptionRoom">Reception Room</Label>
+                  <Select value={formData.livingRooms?.toString() || "0"} onValueChange={(value) => {
+                    const newFormData = { ...formData, livingRooms: parseInt(value) };
+                    setFormData(newFormData);
+                    updateState(newFormData, selectedExtras);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="0" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="carpetCleaning">Carpet Cleaning</Label>
+                  <Select value={formData.carpetCleaning?.toString() || "0"} onValueChange={(value) => {
+                    const newFormData = { ...formData, carpetCleaning: parseInt(value) };
+                    setFormData(newFormData);
+                    updateState(newFormData, selectedExtras);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="0" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="bathrooms">Bathrooms</Label>
-                <Input 
-                  type="number" 
-                  min="0" 
-                  max="10" 
-                  value={formData.bathrooms}
-                  onChange={(e) => {
-                    const newFormData = { ...formData, bathrooms: parseInt(e.target.value) };
+              
+              {/* Right Column */}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="bathrooms">Bathrooms</Label>
+                  <Select value={formData.bathrooms?.toString() || "0"} onValueChange={(value) => {
+                    const newFormData = { ...formData, bathrooms: parseInt(value) };
                     setFormData(newFormData);
                     updateState(newFormData, selectedExtras);
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor="toilets">Toilets</Label>
-                <Input 
-                  type="number" 
-                  min="0" 
-                  max="10" 
-                  value={formData.toilets}
-                  onChange={(e) => {
-                    const newFormData = { ...formData, toilets: parseInt(e.target.value) };
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="0" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="kitchen">Kitchen</Label>
+                  <Select value={formData.kitchen?.toString() || "1"} onValueChange={(value) => {
+                    const newFormData = { ...formData, kitchen: parseInt(value) };
                     setFormData(newFormData);
                     updateState(newFormData, selectedExtras);
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor="livingRooms">Living Rooms</Label>
-                <Input 
-                  type="number" 
-                  min="0" 
-                  max="10" 
-                  value={formData.livingRooms}
-                  onChange={(e) => {
-                    const newFormData = { ...formData, livingRooms: parseInt(e.target.value) };
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="1" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[0,1,2,3,4,5].map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="utilityRoom">Utility Room</Label>
+                  <Select value={formData.utilityRoom?.toString() || "0"} onValueChange={(value) => {
+                    const newFormData = { ...formData, utilityRoom: parseInt(value) };
                     setFormData(newFormData);
                     updateState(newFormData, selectedExtras);
-                  }}
-                />
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="0" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[0,1,2,3,4,5].map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="sqFt">Sq Ft</Label>
+                  <Select value={formData.squareFootage?.toString() || "1"} onValueChange={(value) => {
+                    const newFormData = { ...formData, squareFootage: parseInt(value.split('-')[0]) };
+                    setFormData(newFormData);
+                    updateState(newFormData, selectedExtras);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="1 - 1200 Sq Ft" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1-1200">1 - 1200 Sq Ft</SelectItem>
+                      <SelectItem value="1201-2000">1201 - 2000 Sq Ft</SelectItem>
+                      <SelectItem value="2001-3000">2001 - 3000 Sq Ft</SelectItem>
+                      <SelectItem value="3001-4000">3001 - 4000 Sq Ft</SelectItem>
+                      <SelectItem value="4001-5000">4001 - 5000 Sq Ft</SelectItem>
+                      <SelectItem value="5001+">5001+ Sq Ft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
             

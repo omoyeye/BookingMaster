@@ -43,15 +43,30 @@ export default function PricingSidebar({ formData, selectedExtras, pricing }: Pr
             <span className="font-medium">
               {pricing.totalDuration ? 
                 `${Math.floor(pricing.totalDuration / 60)}h ${pricing.totalDuration % 60 > 0 ? `${pricing.totalDuration % 60}m` : ''}`.trim() :
-                `${formData.duration || '-'} hours`
+                (formData.serviceType === 'deep' || formData.serviceType === 'tenancy') ? 
+                  'Dynamic (based on rooms)' :
+                  `${formData.duration || '-'} hours`
               }
             </span>
           </div>
           
           {pricing.basePrice > 0 && (
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span>Base Price:</span>
-              <span className="font-medium">£{pricing.basePrice.toFixed(2)}</span>
+            <div className="py-2 border-b border-gray-100">
+              <div className="flex justify-between items-center mb-2">
+                <span>Base Price:</span>
+                <span className="font-medium">£{pricing.basePrice.toFixed(2)}</span>
+              </div>
+              {(formData.serviceType === 'deep' || formData.serviceType === 'tenancy') && (
+                <div className="text-xs text-muted-foreground space-y-1">
+                  {formData.bedrooms > 0 && <div>• {formData.bedrooms} Bedroom{formData.bedrooms > 1 ? 's' : ''} (£20/hr each)</div>}
+                  {formData.bathrooms > 0 && <div>• {formData.bathrooms} Bathroom{formData.bathrooms > 1 ? 's' : ''} (£25/hr each)</div>}
+                  {formData.toilets > 0 && <div>• {formData.toilets} Cloakroom Toilet{formData.toilets > 1 ? 's' : ''} (£15/30min each)</div>}
+                  {formData.livingRooms > 0 && <div>• {formData.livingRooms} Reception Room{formData.livingRooms > 1 ? 's' : ''} (£25/hr each)</div>}
+                  {formData.kitchen > 0 && <div>• {formData.kitchen} Kitchen{formData.kitchen > 1 ? 's' : ''} (£25/hr each)</div>}
+                  {formData.utilityRoom > 0 && <div>• {formData.utilityRoom} Utility Room{formData.utilityRoom > 1 ? 's' : ''} (£15/30min each)</div>}
+                  {formData.carpetCleaning > 0 && <div>• {formData.carpetCleaning} Carpet Cleaning area{formData.carpetCleaning > 1 ? 's' : ''} (£35/hr each)</div>}
+                </div>
+              )}
             </div>
           )}
           

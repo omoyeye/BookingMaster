@@ -141,3 +141,15 @@ Preferred communication style: Simple, everyday language.
 - **Enhanced customer experience** with detailed confirmation page and next steps information
 - **Integrated email templates** with professional styling and complete booking details
 - **Tested complete post-booking flow** from form submission to PDF generation and email notifications
+
+### January 12, 2025 - Enhanced Property Details & UI Restructuring
+- **REDESIGNED PROPERTY DETAILS SECTION** - Modeled after user-provided image structure with dropdown selectors
+- **EXPANDED ROOM-BASED PRICING** - Added Kitchen, Utility Room, and Carpet Cleaning to dynamic pricing calculations
+- **IMPLEMENTED COMPREHENSIVE DROPDOWNS** - All room types now use Select components with 0-10 options
+- **ADDED SQUARE FOOTAGE RANGES** - Categorized property sizes (1-1200, 1201-2000, 2001-3000, etc.)
+- **ENHANCED DYNAMIC PRICING** - Kitchen (£25/hr), Utility Room (£15/30min), Carpet Cleaning (£35/hr)
+- **UPDATED DATABASE SCHEMA** - Added kitchen, utilityRoom, and carpetCleaning fields to bookings table
+- **IMPROVED PRICING DISPLAY** - Shows "Dynamic (based on rooms)" for Deep Cleaning and End of Tenancy services
+- **REFINED FORM LAYOUT** - Two-column layout matching uploaded image structure for better user experience
+- **COMPREHENSIVE TESTING** - Verified all new room types calculate correctly in pricing and persist to database
+- **MAINTAINED INFINITE LOOP PREVENTION** - All new dropdowns use direct state management without problematic useEffect hooks
