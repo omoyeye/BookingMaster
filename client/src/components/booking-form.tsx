@@ -83,14 +83,6 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
   const { data: serviceExtras = [] } = useQuery({
     queryKey: ['/api/service-extras', formData.serviceType],
     enabled: !!formData.serviceType,
-    onSuccess: (data) => {
-      // Auto-show additional services when loaded
-      if (data && data.length > 0 && formData.serviceType && 
-          (visibleSections.includes('propertyDetails') || visibleSections.includes('surfaceDetails')) &&
-          !visibleSections.includes('additionalServices')) {
-        setVisibleSections(prev => [...prev, 'additionalServices']);
-      }
-    }
   });
 
   // Create booking mutation
@@ -134,19 +126,35 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     }
   }, []);
 
+  // Auto-show additional services when service extras are loaded
+  useEffect(() => {
+    if (serviceExtras.length > 0 && formData.serviceType && 
+        (visibleSections.includes('propertyDetails') || visibleSections.includes('surfaceDetails')) &&
+        !visibleSections.includes('additionalServices')) {
+      setVisibleSections(prev => [...prev, 'additionalServices']);
+    }
+  }, [serviceExtras.length, formData.serviceType, visibleSections]);
+
+  // Debounced update function
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const pricing = calculatePricing(formData, selectedExtras);
+      onPricingChange(pricing);
+      onFormDataChange(formData);
+      onExtrasChange(selectedExtras);
+      saveFormData({
+        ...formData,
+        selectedExtras,
+        selectedTimeSlot
+      });
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData, selectedExtras, selectedTimeSlot]);
+
   const updateFormData = (updates: Partial<typeof formData>) => {
     const newFormData = { ...formData, ...updates };
     setFormData(newFormData);
-    
-    // Update pricing and parent state
-    const pricing = calculatePricing(newFormData, selectedExtras);
-    onPricingChange(pricing);
-    onFormDataChange(newFormData);
-    saveFormData({
-      ...newFormData,
-      selectedExtras,
-      selectedTimeSlot
-    });
   };
 
   const showNextSection = () => {
@@ -174,16 +182,6 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     } else {
       setVisibleSections(['propertyDetails']);
     }
-    
-    // Update pricing and parent state
-    const pricing = calculatePricing(newFormData, []);
-    onPricingChange(pricing);
-    onFormDataChange(newFormData);
-    saveFormData({
-      ...newFormData,
-      selectedExtras: [],
-      selectedTimeSlot
-    });
   };
 
   const handleExtraToggle = (extra: any) => {
@@ -196,16 +194,6 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     }
     
     setSelectedExtras(newExtras);
-    
-    // Update pricing and parent state immediately
-    const pricing = calculatePricing(formData, newExtras);
-    onPricingChange(pricing);
-    onExtrasChange(newExtras);
-    saveFormData({
-      ...formData,
-      selectedExtras: newExtras,
-      selectedTimeSlot
-    });
   };
 
   const handleTimeSlotSelect = (time: string) => {
