@@ -179,3 +179,13 @@ Preferred communication style: Simple, everyday language.
 - **IMPROVED ERROR HANDLING** - Added detailed error messages and console logging for debugging
 - **MAINTAINED PDF & EMAIL INTEGRATION** - Ensured booking confirmation works with PDF generation and email notifications
 - **TESTED COMPLETE FLOW** - Verified end-to-end booking process from service selection to confirmation
+
+### January 12, 2025 - AirBnB Special Pricing Implementation
+- **IMPLEMENTED BEDROOM-BASED PRICING** - AirBnB cleaning duration: 1 bedroom = 2hrs, 2 bedrooms = 3hrs, up to 5 bedrooms
+- **ADDED FIXED HOURLY RATE** - AirBnB service charge at £20/hour for all bedroom configurations
+- **CREATED AIRBNB-SPECIFIC SERVICES** - Added Internal Laundry (FREE), External Laundry (£20/bed set), and Ironing Service (£15)
+- **UPDATED PRICING CALCULATION** - Modified booking-utils.ts to handle special AirBnB pricing logic
+- **ENHANCED FORM INTERFACE** - Added bedroom selection dropdown with real-time duration display
+- **UPDATED PRICING SIDEBAR** - Shows "bedroom-based" duration indication for AirBnB services
+- **SEEDED DATABASE** - Added 3 new AirBnB-specific service extras to database
+- **MAINTAINED CONSISTENCY** - All other service types remain unchanged with existing pricing structures

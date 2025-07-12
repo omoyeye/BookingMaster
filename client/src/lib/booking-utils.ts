@@ -2,7 +2,7 @@ export const SERVICE_DATA = {
   general: { name: 'General / Standard Cleaning', baseRate: 20, minDuration: 2, minNotice: 2 },
   deep: { name: 'Deep Cleaning', baseRate: 30, minDuration: 3, minNotice: 3 },
   tenancy: { name: 'End of Tenancy Cleaning', baseRate: 30, minDuration: 4, minNotice: 7 },
-  airbnb: { name: 'AirBnB Cleaning', baseRate: 0, minDuration: 2, minNotice: 1, quoteBased: true },
+  airbnb: { name: 'AirBnB Cleaning', baseRate: 20, minDuration: 2, minNotice: 1, bedroomBased: true },
   jet: { name: 'Jet Washing / Garden Cleaning', baseRate: 0, minDuration: 2, minNotice: 2, quoteBased: true },
   commercial: { name: 'Commercial Cleaning', baseRate: 0, minDuration: 3, minNotice: 3, quoteBased: true }
 };
@@ -107,9 +107,18 @@ export function calculatePricing(formData: any, selectedExtras: any[]) {
     basePrice = Math.max(basePrice, 60); // Minimum £60
     baseDuration = Math.max(baseDuration, 120); // Minimum 2 hours
   } else {
-    // Handle quote-based services
-    if (service.quoteBased) {
-      const extrasTotal = selectedExtras.reduce((sum, extra) => sum + parseFloat(extra.price), 0);
+    // Handle AirBnB special pricing
+    if (formData.serviceType === 'airbnb') {
+      const bedrooms = parseInt(formData.bedrooms?.toString() || '1');
+      const duration = bedrooms + 1; // 1 bedroom = 2hrs, 2 bedrooms = 3hrs, etc.
+      basePrice = 20 * duration; // £20/hour
+      baseDuration = duration * 60; // Convert hours to minutes
+    } else if (service.quoteBased) {
+      // Handle other quote-based services
+      const extrasTotal = selectedExtras.reduce((sum, extra) => {
+        const quantity = extra.quantity || 1;
+        return sum + (parseFloat(extra.price) * quantity);
+      }, 0);
       return {
         basePrice: 0,
         baseDuration: 0,
@@ -121,11 +130,11 @@ export function calculatePricing(formData: any, selectedExtras: any[]) {
         totalDuration: 0,
         quoteBased: true
       };
+    } else {
+      // Standard pricing for other services
+      basePrice = service.baseRate * (formData.duration || 1);
+      baseDuration = (formData.duration || 1) * 60; // Convert hours to minutes
     }
-    
-    // Standard pricing for other services
-    basePrice = service.baseRate * (formData.duration || 1);
-    baseDuration = (formData.duration || 1) * 60; // Convert hours to minutes
   }
 
   // Calculate extras total and duration (with quantities)

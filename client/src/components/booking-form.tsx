@@ -603,8 +603,54 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
               </div>
             )}
             
+            {/* AirBnB Cleaning - Special bedroom-based pricing */}
+            {formData.serviceType === 'airbnb' && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="bedrooms">Number of Bedrooms</Label>
+                  <Select value={formData.bedrooms?.toString() || "1"} onValueChange={(value) => {
+                    const bedrooms = parseInt(value);
+                    const duration = bedrooms + 1; // 1 bedroom = 2hrs, 2 bedrooms = 3hrs, etc.
+                    const newFormData = { ...formData, bedrooms, duration };
+                    setFormData(newFormData);
+                    updateState(newFormData, selectedExtras);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select bedrooms..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1,2,3,4,5].map(num => (
+                        <SelectItem key={num} value={num.toString()}>
+                          {num} bedroom{num > 1 ? 's' : ''} ({num + 1} hours)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="text-sm text-muted-foreground p-3 bg-muted rounded-lg">
+                  <p><strong>AirBnB Cleaning Pricing:</strong></p>
+                  <p>• Service charge: £20/hour</p>
+                  <p>• Duration: {formData.bedrooms ? formData.bedrooms + 1 : 2} hours for {formData.bedrooms || 1} bedroom{(formData.bedrooms || 1) > 1 ? 's' : ''}</p>
+                  <p>• Internal laundry: FREE</p>
+                  <p>• External laundry: £20/bed set</p>
+                  <p>• Ironing: Additional charges apply</p>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t">
+                  <Button 
+                    type="button" 
+                    onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
+                    className="w-full"
+                  >
+                    Continue to Additional Services
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             {/* Other Services - Keep existing simple form */}
-            {formData.serviceType && !['general', 'deep', 'tenancy'].includes(formData.serviceType) && (
+            {formData.serviceType && !['general', 'deep', 'tenancy', 'airbnb'].includes(formData.serviceType) && (
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="duration">Duration (hours)</Label>

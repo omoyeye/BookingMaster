@@ -45,7 +45,9 @@ export default function PricingSidebar({ formData, selectedExtras, pricing }: Pr
                 `${Math.floor(pricing.totalDuration / 60)}h ${pricing.totalDuration % 60 > 0 ? `${pricing.totalDuration % 60}m` : ''}`.trim() :
                 (formData.serviceType === 'deep' || formData.serviceType === 'tenancy') ? 
                   'Dynamic (based on rooms)' :
-                  `${formData.duration || '-'} hours`
+                  formData.serviceType === 'airbnb' ?
+                    `${formData.duration || 2} hours (bedroom-based)` :
+                    `${formData.duration || '-'} hours`
               }
             </span>
           </div>

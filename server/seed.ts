@@ -51,6 +51,24 @@ async function seedDatabase() {
         price: extra.price
       });
     });
+    
+    // Add special AirBnB-specific services
+    if (serviceType === 'airbnb') {
+      const airbnbExtras = [
+        { name: 'External Laundry (per bed set)', description: 'External laundry service per bed set', price: '20' },
+        { name: 'Ironing Service', description: 'Professional ironing service', price: '15' },
+        { name: 'Internal Laundry', description: 'Internal laundry service (FREE)', price: '0' }
+      ];
+      
+      airbnbExtras.forEach(extra => {
+        extras.push({
+          serviceType,
+          name: extra.name,
+          description: extra.description,
+          price: extra.price
+        });
+      });
+    }
   });
 
   await db.insert(serviceExtras).values(extras);
