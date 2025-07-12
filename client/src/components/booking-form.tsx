@@ -68,6 +68,10 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData: any) => {
       const response = await apiRequest('POST', '/api/bookings', bookingData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create booking');
+      }
       return response.json();
     },
     onSuccess: (booking) => {
@@ -79,9 +83,16 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
       });
     },
     onError: (error: any) => {
+      console.error('Booking creation error:', error);
+      let errorMessage = "Failed to create booking. Please try again.";
+      
+      if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Booking Failed",
-        description: error.message || "Failed to create booking. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -178,13 +189,32 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     const pricing = calculatePricing(formData, selectedExtras);
     const bookingData = {
       ...formData,
+      // Ensure frequency is always set (default to 'one-time' for non-general services)
+      frequency: formData.frequency || 'one-time',
+      // Convert numeric fields to integers
+      duration: parseInt(formData.duration?.toString() || '2'),
+      bedrooms: parseInt(formData.bedrooms?.toString() || '0'),
+      bathrooms: parseInt(formData.bathrooms?.toString() || '0'),
+      toilets: parseInt(formData.toilets?.toString() || '0'),
+      livingRooms: parseInt(formData.livingRooms?.toString() || '0'),
+      kitchen: parseInt(formData.kitchen?.toString() || '0'),
+      utilityRoom: parseInt(formData.utilityRoom?.toString() || '0'),
+      carpetCleaning: parseInt(formData.carpetCleaning?.toString() || '0'),
+      squareFootage: parseInt(formData.squareFootage?.toString() || '0'),
+      tipPercentage: parseInt(formData.tipPercentage?.toString() || '0'),
+      // Handle extras array
       selectedExtras: selectedExtras.map(extra => `${extra.name} (x${extra.quantity || 1})`),
+      // Handle pricing as strings for decimal fields
       basePrice: pricing.basePrice.toFixed(2),
       extrasTotal: pricing.extrasTotal.toFixed(2),
       tipAmount: pricing.tipAmount.toFixed(2),
       totalPrice: pricing.total.toFixed(2),
+      customTip: formData.customTip || '0',
+      // Ensure required fields are present
+      bookingTime: selectedTimeSlot || formData.bookingTime,
     };
 
+    console.log('Submitting booking data:', bookingData);
     createBookingMutation.mutate(bookingData);
   };
 
