@@ -11,7 +11,7 @@ import { Calendar, Clock, MapPin, User, Mail, Phone, CreditCard, PlusCircle, Hom
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
-import { calculatePricing, saveFormData, loadFormData, clearFormData, SERVICE_DATA, FREQUENCY_OPTIONS, DURATION_OPTIONS, TIME_SLOTS, TIP_OPTIONS } from '@/lib/booking-utils';
+import { calculatePricing, saveFormData, getInitialFormData, clearFormData, markBookingCompleted, loadFormData, SERVICE_DATA, FREQUENCY_OPTIONS, DURATION_OPTIONS, TIME_SLOTS, TIP_OPTIONS } from '@/lib/booking-utils';
 
 interface BookingFormProps {
   onPricingChange: (pricing: any) => void;
@@ -22,33 +22,7 @@ interface BookingFormProps {
 export default function BookingForm({ onPricingChange, onExtrasChange, onFormDataChange }: BookingFormProps) {
   const [, setLocation] = useLocation();
   
-  const [formData, setFormData] = useState({
-    serviceType: '',
-    frequency: '',
-    duration: 2,
-    bedrooms: '',
-    bathrooms: '',
-    toilets: '',
-    livingRooms: '',
-    propertyType: '',
-    propertyStatus: '',
-    surfaceType: '',
-    surfaceMaterial: '',
-    squareFootage: '',
-    bookingDate: '',
-    bookingTime: '',
-    fullName: '',
-    email: '',
-    phone: '',
-    address1: '',
-    address2: '',
-    city: '',
-    postcode: '',
-    specialInstructions: '',
-    smsReminders: false,
-    tipPercentage: '0',
-    customTip: ''
-  });
+  const [formData, setFormData] = useState(() => getInitialFormData());
 
   const [selectedExtras, setSelectedExtras] = useState<any[]>([]);
   const [extrasQuantities, setExtrasQuantities] = useState<{[key: number]: number}>({});
@@ -75,7 +49,19 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
       return response.json();
     },
     onSuccess: (booking) => {
+      // Mark booking as completed and clear all state
+      markBookingCompleted();
       clearFormData();
+      
+      // Reset React state completely
+      const initialData = getInitialFormData();
+      setFormData(initialData);
+      setSelectedExtras([]);
+      setExtrasQuantities({});
+      setVisibleSections([]);
+      setSelectedTimeSlot('');
+      
+      // Navigate to confirmation
       setLocation(`/booking-confirmation?bookingId=${booking.id}`);
       toast({
         title: "Booking Confirmed!",
@@ -98,20 +84,16 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     }
   });
 
-  // Load saved data on mount - ONLY ONCE
+  // Initialize extras state from form data on mount
   useEffect(() => {
-    const savedData = loadFormData();
-    if (savedData) {
-      setFormData(prev => ({ ...prev, ...savedData }));
-      if (savedData.selectedExtras) {
-        setSelectedExtras(savedData.selectedExtras);
-      }
-      if (savedData.extrasQuantities) {
-        setExtrasQuantities(savedData.extrasQuantities);
-      }
-      if (savedData.selectedTimeSlot) {
-        setSelectedTimeSlot(savedData.selectedTimeSlot);
-      }
+    if (formData.selectedExtras) {
+      setSelectedExtras(formData.selectedExtras);
+    }
+    if (formData.extrasQuantities) {
+      setExtrasQuantities(formData.extrasQuantities);
+    }
+    if (formData.selectedTimeSlot) {
+      setSelectedTimeSlot(formData.selectedTimeSlot);
     }
   }, []);
 

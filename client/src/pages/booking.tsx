@@ -3,6 +3,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import BookingForm from "@/components/booking-form";
 import PricingSidebar from "@/components/pricing-sidebar";
 import ErrorBoundary from "@/components/error-boundary";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { clearFormData } from "@/lib/booking-utils";
 
 export default function BookingPage() {
   const isMobile = useIsMobile();
@@ -47,10 +50,28 @@ export default function BookingPage() {
     });
   }, []);
 
+  const handleNewBooking = () => {
+    clearFormData();
+    window.location.reload();
+  };
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Book Your Cleaning Service</h1>
+            <Button
+              onClick={handleNewBooking}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Start New Booking
+            </Button>
+          </div>
+          
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-7xl mx-auto">
             {/* Main Form Column */}
             <div className="lg:col-span-8">

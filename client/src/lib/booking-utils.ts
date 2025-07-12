@@ -199,4 +199,89 @@ export function loadFormData() {
 
 export function clearFormData() {
   localStorage.removeItem('bookingFormData');
+  localStorage.removeItem('bookingCompleted');
+}
+
+export function markBookingCompleted() {
+  localStorage.setItem('bookingCompleted', 'true');
+}
+
+export function isBookingCompleted() {
+  return localStorage.getItem('bookingCompleted') === 'true';
+}
+
+export function getInitialFormData() {
+  // Don't load saved data if booking was just completed
+  if (isBookingCompleted()) {
+    clearFormData();
+    return {
+      serviceType: '',
+      frequency: 'once',
+      duration: 2,
+      bedrooms: 1,
+      bathrooms: 1,
+      toilets: 0,
+      livingRooms: 1,
+      kitchen: 1,
+      utilityRoom: 0,
+      carpetCleaning: 0,
+      propertyType: '',
+      propertyStatus: '',
+      surfaceType: '',
+      surfaceMaterial: '',
+      squareFootage: 0,
+      bookingDate: '',
+      bookingTime: '',
+      fullName: '',
+      email: '',
+      phone: '',
+      address1: '',
+      address2: '',
+      city: '',
+      postcode: '',
+      specialInstructions: '',
+      smsReminders: false,
+      tipPercentage: 0,
+      customTip: '',
+      selectedExtras: [],
+      selectedTimeSlot: '',
+      notifyMoreTime: false,
+      extrasQuantities: {}
+    };
+  }
+  
+  return loadFormData() || {
+    serviceType: '',
+    frequency: 'once',
+    duration: 2,
+    bedrooms: 1,
+    bathrooms: 1,
+    toilets: 0,
+    livingRooms: 1,
+    kitchen: 1,
+    utilityRoom: 0,
+    carpetCleaning: 0,
+    propertyType: '',
+    propertyStatus: '',
+    surfaceType: '',
+    surfaceMaterial: '',
+    squareFootage: 0,
+    bookingDate: '',
+    bookingTime: '',
+    fullName: '',
+    email: '',
+    phone: '',
+    address1: '',
+    address2: '',
+    city: '',
+    postcode: '',
+    specialInstructions: '',
+    smsReminders: false,
+    tipPercentage: 0,
+    customTip: '',
+    selectedExtras: [],
+    selectedTimeSlot: '',
+    notifyMoreTime: false,
+    extrasQuantities: {}
+  };
 }
