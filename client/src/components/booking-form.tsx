@@ -718,19 +718,29 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
             <div>
               <Label>Available Time Slots</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                {TIME_SLOTS.map(time => (
+                {TIME_SLOTS.map(timeSlot => (
                   <Button
-                    key={time}
+                    key={timeSlot.value}
                     type="button"
-                    variant={selectedTimeSlot === time ? "default" : "outline"}
+                    variant={selectedTimeSlot === timeSlot.value ? "default" : "outline"}
                     size="sm"
-                    onClick={() => handleTimeSlotSelect(time)}
+                    onClick={() => handleTimeSlotSelect(timeSlot.value)}
                     className="text-xs"
                   >
-                    {time}
+                    {timeSlot.label}
                   </Button>
                 ))}
               </div>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t">
+              <Button 
+                type="button" 
+                onClick={() => setVisibleSections(prev => [...prev, 'customerDetails'])}
+                className="w-full"
+              >
+                Continue to Customer Details
+              </Button>
             </div>
           </CardContent>
         </Card>
