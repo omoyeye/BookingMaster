@@ -24,8 +24,13 @@ export interface PDFBookingData {
   bathrooms?: number;
   toilets?: number;
   livingRooms?: number;
+  kitchen?: number;
+  utilityRoom?: number;
+  carpetCleaning?: number;
   propertyType?: string;
+  propertyStatus?: string;
   surfaceType?: string;
+  surfaceMaterial?: string;
   squareFootage?: number;
   specialInstructions?: string;
   quoteRequest?: string;
@@ -39,35 +44,73 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
       
       const doc = new jsPDF();
       console.log('📄 jsPDF instance created successfully');
+      
+      let yPos = 20;
+      const pageHeight = doc.internal.pageSize.height;
+      const marginBottom = 20;
+      
+      // Helper function to check if we need a new page
+      const checkNewPage = (requiredSpace = 20) => {
+        if (yPos + requiredSpace > pageHeight - marginBottom) {
+          doc.addPage();
+          yPos = 20;
+          return true;
+        }
+        return false;
+      };
+      
+      // Helper function to format service type
+      const formatServiceType = (type: string) => {
+        const serviceTypes = {
+          'general': 'General Cleaning',
+          'deep': 'Deep Cleaning',
+          'tenancy': 'End of Tenancy Cleaning',
+          'airbnb': 'Airbnb Cleaning',
+          'commercial': 'Commercial Cleaning',
+          'jet': 'Jet Washing / Garden Cleaning'
+        };
+        return serviceTypes[type as keyof typeof serviceTypes] || type;
+      };
     
       // Company header with logo and branding
       doc.setFontSize(20);
       doc.setTextColor(40, 40, 40);
-      doc.text('URINAKCLEANING', 20, 20);
+      doc.text('URINAKCLEANING', 20, yPos);
       
+      yPos += 10;
       doc.setFontSize(12);
       doc.setTextColor(80, 80, 80);
-      doc.text('Professional Cleaning Services', 20, 30);
-      doc.text('86a High Street Beckenham, Kent, London BR3 1ED', 20, 38);
-      doc.text('Phone: +44-7786687791', 20, 46);
-      doc.text('Email: info@urinakcleaning.co.uk', 20, 54);
+      doc.text('Professional Cleaning Services', 20, yPos);
+      yPos += 8;
+      doc.text('86a High Street Beckenham, Kent, London BR3 1ED', 20, yPos);
+      yPos += 8;
+      doc.text('Phone: +44-7786687791', 20, yPos);
+      yPos += 8;
+      doc.text('Email: info@urinakcleaning.co.uk', 20, yPos);
+      yPos += 8;
+      doc.text('Business Hours: Monday - Sunday, 8:00 AM - 6:00 PM', 20, yPos);
       
       // Add company logo placeholder (future enhancement)
       doc.setFontSize(8);
       doc.setTextColor(120, 120, 120);
       doc.text('[COMPANY LOGO]', 150, 25);
       
-      // Receipt title
+      // Booking confirmation title
+      yPos += 25;
+      checkNewPage(30);
       doc.setFontSize(16);
       doc.setTextColor(40, 40, 40);
-      doc.text('BOOKING CONFIRMATION', 20, 70);
+      doc.text('BOOKING CONFIRMATION', 20, yPos);
       
-      // Booking ID
+      yPos += 15;
       doc.setFontSize(12);
-      doc.text(`Booking ID: #${booking.id}`, 20, 85);
+      doc.text(`Booking ID: #${booking.id}`, 20, yPos);
+      yPos += 8;
+      doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}`, 20, yPos);
       
       // Service details
-      let yPos = 100;
+      yPos += 20;
+      checkNewPage(80);
       doc.setFontSize(14);
       doc.setTextColor(40, 40, 40);
       doc.text('Service Details', 20, yPos);
@@ -75,59 +118,19 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
       yPos += 10;
       doc.setFontSize(10);
       doc.setTextColor(80, 80, 80);
-      doc.text(`Service Type: ${booking.serviceType.charAt(0).toUpperCase() + booking.serviceType.slice(1)} Cleaning`, 20, yPos);
+      doc.text(`Service Type: ${formatServiceType(booking.serviceType)}`, 20, yPos);
       yPos += 8;
       doc.text(`Frequency: ${booking.frequency}`, 20, yPos);
       yPos += 8;
       doc.text(`Duration: ${booking.duration} hours`, 20, yPos);
       yPos += 8;
-      doc.text(`Date: ${booking.bookingDate}`, 20, yPos);
+      doc.text(`Scheduled Date: ${booking.bookingDate}`, 20, yPos);
       yPos += 8;
-      doc.text(`Time: ${booking.bookingTime}`, 20, yPos);
+      doc.text(`Scheduled Time: ${booking.bookingTime}`, 20, yPos);
       
-      // Property details
-      yPos += 15;
-      doc.setFontSize(14);
-      doc.setTextColor(40, 40, 40);
-      doc.text('Property Details', 20, yPos);
-      
-      yPos += 10;
-      doc.setFontSize(10);
-      doc.setTextColor(80, 80, 80);
-      if (booking.bedrooms) {
-        doc.text(`Bedrooms: ${booking.bedrooms}`, 20, yPos);
-        yPos += 8;
-      }
-      if (booking.bathrooms) {
-        doc.text(`Bathrooms: ${booking.bathrooms}`, 20, yPos);
-        yPos += 8;
-      }
-      if (booking.toilets) {
-        doc.text(`Toilets: ${booking.toilets}`, 20, yPos);
-        yPos += 8;
-      }
-      if (booking.livingRooms) {
-        doc.text(`Living Rooms: ${booking.livingRooms}`, 20, yPos);
-        yPos += 8;
-      }
-      
-      if (booking.propertyType) {
-        doc.text(`Property Type: ${booking.propertyType}`, 20, yPos);
-        yPos += 8;
-      }
-      
-      if (booking.surfaceType) {
-        doc.text(`Surface Type: ${booking.surfaceType}`, 20, yPos);
-        yPos += 8;
-      }
-      
-      if (booking.squareFootage) {
-        doc.text(`Square Footage: ${booking.squareFootage} sq ft`, 20, yPos);
-        yPos += 8;
-      }
-      
-      // Customer details
-      yPos += 15;
+      // Customer Information
+      yPos += 20;
+      checkNewPage(80);
       doc.setFontSize(14);
       doc.setTextColor(40, 40, 40);
       doc.text('Customer Information', 20, yPos);
@@ -135,7 +138,7 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
       yPos += 10;
       doc.setFontSize(10);
       doc.setTextColor(80, 80, 80);
-      doc.text(`Name: ${booking.fullName}`, 20, yPos);
+      doc.text(`Full Name: ${booking.fullName}`, 20, yPos);
       yPos += 8;
       doc.text(`Email: ${booking.email}`, 20, yPos);
       yPos += 8;
@@ -149,9 +152,69 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
       }
       doc.text(`         ${booking.city}, ${booking.postcode}`, 20, yPos);
       
+      // Property details
+      yPos += 20;
+      checkNewPage(120);
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.text('Property Details', 20, yPos);
+      
+      yPos += 10;
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      if (booking.bedrooms && booking.bedrooms > 0) {
+        doc.text(`Bedrooms: ${booking.bedrooms}`, 20, yPos);
+        yPos += 8;
+      }
+      if (booking.bathrooms && booking.bathrooms > 0) {
+        doc.text(`Bathrooms: ${booking.bathrooms}`, 20, yPos);
+        yPos += 8;
+      }
+      if (booking.toilets && booking.toilets > 0) {
+        doc.text(`Toilets: ${booking.toilets}`, 20, yPos);
+        yPos += 8;
+      }
+      if (booking.livingRooms && booking.livingRooms > 0) {
+        doc.text(`Living Rooms: ${booking.livingRooms}`, 20, yPos);
+        yPos += 8;
+      }
+      if (booking.kitchen && booking.kitchen > 0) {
+        doc.text(`Kitchen: ${booking.kitchen}`, 20, yPos);
+        yPos += 8;
+      }
+      if (booking.utilityRoom && booking.utilityRoom > 0) {
+        doc.text(`Utility Room: ${booking.utilityRoom}`, 20, yPos);
+        yPos += 8;
+      }
+      if (booking.carpetCleaning && booking.carpetCleaning > 0) {
+        doc.text(`Carpet Cleaning: ${booking.carpetCleaning}`, 20, yPos);
+        yPos += 8;
+      }
+      if (booking.propertyType) {
+        doc.text(`Property Type: ${booking.propertyType}`, 20, yPos);
+        yPos += 8;
+      }
+      if (booking.propertyStatus) {
+        doc.text(`Property Status: ${booking.propertyStatus}`, 20, yPos);
+        yPos += 8;
+      }
+      if (booking.surfaceType) {
+        doc.text(`Surface Type: ${booking.surfaceType}`, 20, yPos);
+        yPos += 8;
+      }
+      if (booking.surfaceMaterial) {
+        doc.text(`Surface Material: ${booking.surfaceMaterial}`, 20, yPos);
+        yPos += 8;
+      }
+      if (booking.squareFootage && booking.squareFootage > 0) {
+        doc.text(`Square Footage: ${booking.squareFootage} sq ft`, 20, yPos);
+        yPos += 8;
+      }
+      
       // Additional services
       if (booking.selectedExtras && booking.selectedExtras.length > 0) {
         yPos += 15;
+        checkNewPage(50 + (booking.selectedExtras.length * 8));
         doc.setFontSize(14);
         doc.setTextColor(40, 40, 40);
         doc.text('Additional Services', 20, yPos);
@@ -165,9 +228,31 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
         });
       }
       
-      // Quote request details
-      if (booking.quoteRequest) {
+      // Special instructions
+      if (booking.specialInstructions && booking.specialInstructions.trim()) {
         yPos += 15;
+        checkNewPage(60);
+        doc.setFontSize(14);
+        doc.setTextColor(40, 40, 40);
+        doc.text('Special Instructions', 20, yPos);
+        
+        yPos += 10;
+        doc.setFontSize(10);
+        doc.setTextColor(80, 80, 80);
+        
+        // Split long instructions into multiple lines
+        const instructionLines = doc.splitTextToSize(booking.specialInstructions, 170);
+        instructionLines.forEach((line: string) => {
+          checkNewPage(10);
+          doc.text(line, 20, yPos);
+          yPos += 8;
+        });
+      }
+      
+      // Quote request details
+      if (booking.quoteRequest && booking.quoteRequest.trim()) {
+        yPos += 15;
+        checkNewPage(60);
         doc.setFontSize(14);
         doc.setTextColor(40, 40, 40);
         doc.text('Quote Request Details', 20, yPos);
@@ -175,12 +260,13 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
         yPos += 10;
         doc.setFontSize(10);
         doc.setTextColor(80, 80, 80);
-        const quoteLines = booking.quoteRequest.split('\n');
-        quoteLines.forEach(line => {
-          if (line.trim()) {
-            doc.text(line, 20, yPos);
-            yPos += 8;
-          }
+        
+        // Split long quote request into multiple lines
+        const quoteLines = doc.splitTextToSize(booking.quoteRequest, 170);
+        quoteLines.forEach((line: string) => {
+          checkNewPage(10);
+          doc.text(line, 20, yPos);
+          yPos += 8;
         });
         
         yPos += 5;
@@ -190,7 +276,8 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
       }
       
       // Pricing breakdown
-      yPos += 15;
+      yPos += 20;
+      checkNewPage(100);
       doc.setFontSize(14);
       doc.setTextColor(40, 40, 40);
       doc.text('Pricing Breakdown', 20, yPos);
@@ -205,13 +292,35 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
       doc.text(`Tip: £${booking.tipAmount}`, 20, yPos);
       yPos += 8;
       
+      // Draw a line for total
+      doc.setLineWidth(0.5);
+      doc.line(20, yPos + 2, 100, yPos + 2);
+      yPos += 8;
+      
       // Total
       doc.setFontSize(12);
       doc.setTextColor(40, 40, 40);
-      doc.text(`TOTAL: £${booking.totalPrice}`, 20, yPos + 8);
+      doc.text(`TOTAL: £${booking.totalPrice}`, 20, yPos);
+      
+      // Payment information
+      yPos += 20;
+      checkNewPage(40);
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.text('Payment Information', 20, yPos);
+      
+      yPos += 10;
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      doc.text('Payment will be collected upon service completion.', 20, yPos);
+      yPos += 8;
+      doc.text('We accept cash, card, and bank transfer payments.', 20, yPos);
+      yPos += 8;
+      doc.text('A receipt will be provided after payment.', 20, yPos);
       
       // Contact Information section
-      yPos += 30;
+      yPos += 20;
+      checkNewPage(80);
       doc.setFontSize(14);
       doc.setTextColor(40, 40, 40);
       doc.text('Contact Information', 20, yPos);
@@ -219,17 +328,42 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
       yPos += 10;
       doc.setFontSize(10);
       doc.setTextColor(80, 80, 80);
-      doc.text('For any questions or changes to your booking, please contact us:', 20, yPos);
+      doc.text('For any questions, changes to your booking, or concerns, please contact us:', 20, yPos);
       yPos += 8;
       doc.text('Phone: +44-7786687791', 20, yPos);
       yPos += 8;
       doc.text('Email: info@urinakcleaning.co.uk', 20, yPos);
       yPos += 8;
+      doc.text('Address: 86a High Street Beckenham, Kent, London BR3 1ED', 20, yPos);
+      yPos += 8;
       doc.text('Business Hours: Monday - Sunday, 8:00 AM - 6:00 PM', 20, yPos);
+      
+      // What to expect section
+      yPos += 20;
+      checkNewPage(100);
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.text('What to Expect', 20, yPos);
+      
+      yPos += 10;
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      doc.text('• Our professional team will arrive on time and ready to work', 20, yPos);
+      yPos += 8;
+      doc.text('• We bring all necessary cleaning supplies and equipment', 20, yPos);
+      yPos += 8;
+      doc.text('• You will receive a courtesy call 30 minutes before arrival', 20, yPos);
+      yPos += 8;
+      doc.text('• All our cleaners are insured and background checked', 20, yPos);
+      yPos += 8;
+      doc.text('• We guarantee your satisfaction with our service', 20, yPos);
+      yPos += 8;
+      doc.text('• Payment is due upon completion of the service', 20, yPos);
       
       // Thank you message
       yPos += 20;
-      doc.setFontSize(12);
+      checkNewPage(60);
+      doc.setFontSize(14);
       doc.setTextColor(40, 40, 40);
       doc.text('Thank You for Choosing URINAKCLEANING!', 20, yPos);
       
@@ -244,12 +378,16 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
       
       // Footer
       yPos += 15;
+      checkNewPage(20);
       doc.setFontSize(8);
       doc.setTextColor(120, 120, 120);
       doc.text('This is your official booking confirmation. Please keep this receipt for your records.', 20, yPos);
+      yPos += 8;
+      doc.text(`Generated on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}`, 20, yPos);
       
-      // Convert to blob
-      console.log('📄 Converting PDF to blob...');
+      console.log('📄 PDF generation completed successfully');
+      
+      // Return the PDF as a Blob
       const pdfBlob = doc.output('blob');
       console.log('📄 PDF blob created successfully, size:', pdfBlob.size);
       resolve(pdfBlob);

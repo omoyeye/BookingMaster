@@ -77,8 +77,13 @@ export default function BookingConfirmation() {
         bathrooms: booking.bathrooms,
         toilets: booking.toilets,
         livingRooms: booking.livingRooms,
+        kitchen: booking.kitchen,
+        utilityRoom: booking.utilityRoom,
+        carpetCleaning: booking.carpetCleaning,
         propertyType: booking.propertyType,
+        propertyStatus: booking.propertyStatus,
         surfaceType: booking.surfaceType,
+        surfaceMaterial: booking.surfaceMaterial,
         squareFootage: booking.squareFootage,
         specialInstructions: booking.specialInstructions,
         quoteRequest: booking.quoteRequest
