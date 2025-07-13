@@ -216,7 +216,7 @@ export function getInitialFormData() {
     clearFormData();
     return {
       serviceType: '',
-      frequency: 'once',
+      frequency: 'one-time',
       duration: 2,
       bedrooms: 1,
       bathrooms: 1,
@@ -253,7 +253,7 @@ export function getInitialFormData() {
   
   return loadFormData() || {
     serviceType: '',
-    frequency: 'once',
+    frequency: 'one-time',
     duration: 2,
     bedrooms: 1,
     bathrooms: 1,

@@ -22,7 +22,48 @@ interface BookingFormProps {
 export default function BookingForm({ onPricingChange, onExtrasChange, onFormDataChange }: BookingFormProps) {
   const [, setLocation] = useLocation();
   
-  const [formData, setFormData] = useState(() => getInitialFormData());
+  const [formData, setFormData] = useState(() => {
+    try {
+      return getInitialFormData();
+    } catch (error) {
+      console.error('Error initializing form data:', error);
+      return {
+        serviceType: '',
+        frequency: 'one-time',
+        duration: 2,
+        bedrooms: 1,
+        bathrooms: 1,
+        toilets: 0,
+        livingRooms: 1,
+        kitchen: 1,
+        utilityRoom: 0,
+        carpetCleaning: 0,
+        propertyType: '',
+        propertyStatus: '',
+        surfaceType: '',
+        surfaceMaterial: '',
+        squareFootage: 0,
+        bookingDate: '',
+        bookingTime: '',
+        fullName: '',
+        email: '',
+        phone: '',
+        address1: '',
+        address2: '',
+        city: '',
+        postcode: '',
+        specialInstructions: '',
+        quoteRequest: '',
+        smsReminders: false,
+        tipPercentage: 0,
+        customTip: '',
+        selectedExtras: [],
+        selectedTimeSlot: '',
+        notifyMoreTime: false,
+        extrasQuantities: {}
+      };
+    }
+  });
 
   const [selectedExtras, setSelectedExtras] = useState<any[]>([]);
   const [extrasQuantities, setExtrasQuantities] = useState<{[key: number]: number}>({});
@@ -33,10 +74,15 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
   const queryClient = useQueryClient();
 
   // Load service extras
-  const { data: serviceExtras = [] } = useQuery({
+  const { data: serviceExtras = [], error: serviceExtrasError } = useQuery({
     queryKey: ['/api/service-extras', formData.serviceType],
     enabled: !!formData.serviceType,
   });
+
+  // Log service extras error if any
+  if (serviceExtrasError) {
+    console.error('Service extras error:', serviceExtrasError);
+  }
 
   // Create booking mutation
   const createBookingMutation = useMutation({
@@ -86,13 +132,13 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
 
   // Initialize extras state from form data on mount
   useEffect(() => {
-    if (formData.selectedExtras) {
+    if (formData.selectedExtras && Array.isArray(formData.selectedExtras)) {
       setSelectedExtras(formData.selectedExtras);
     }
-    if (formData.extrasQuantities) {
+    if (formData.extrasQuantities && typeof formData.extrasQuantities === 'object') {
       setExtrasQuantities(formData.extrasQuantities);
     }
-    if (formData.selectedTimeSlot) {
+    if (formData.selectedTimeSlot && typeof formData.selectedTimeSlot === 'string') {
       setSelectedTimeSlot(formData.selectedTimeSlot);
     }
   }, []);
@@ -787,7 +833,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
             <div>
               <Label>Available Time Slots</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                {TIME_SLOTS.map(timeSlot => (
+                {TIME_SLOTS && Array.isArray(TIME_SLOTS) ? TIME_SLOTS.map(timeSlot => (
                   <Button
                     key={timeSlot.value}
                     type="button"
@@ -796,9 +842,11 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
                     onClick={() => handleTimeSlotSelect(timeSlot.value)}
                     className="text-xs"
                   >
-                    {timeSlot.label}
+                    {String(timeSlot.label)}
                   </Button>
-                ))}
+                )) : (
+                  <div className="text-sm text-muted-foreground">No time slots available</div>
+                )}
               </div>
             </div>
             
