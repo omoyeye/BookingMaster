@@ -677,11 +677,11 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
               </div>
             )}
             
-            {/* Commercial Cleaning & Jet Washing - Quote Request Form */}
-            {(formData.serviceType === 'commercial' || formData.serviceType === 'jet') && (
-              <div className="space-y-4">
-                <div className="text-sm text-muted-foreground p-3 bg-muted rounded-lg">
-                  <p><strong>{formData.serviceType === 'commercial' ? 'Commercial Cleaning' : 'Jet Washing / Garden Cleaning'} Service:</strong></p>
+            {/* Jet Washing/Garden Cleaning - Quote Request Form */}
+            {formData.serviceType === 'jet' && (
+              <div className="space-y-6">
+                <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
+                  <p><strong>Jet Washing / Garden Cleaning Service:</strong></p>
                   <p>• This service requires a custom quote based on your specific needs</p>
                   <p>• Please provide detailed information about your requirements</p>
                   <p>• We'll contact you within 24 hours with a personalized quote</p>
@@ -693,13 +693,13 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
                   </Label>
                   <Textarea
                     id="quoteRequest"
-                    placeholder={`Please describe your ${formData.serviceType === 'commercial' ? 'commercial cleaning' : 'jet washing/garden cleaning'} requirements in detail. Include:
+                    placeholder="Please describe your jet washing/garden cleaning requirements in detail. Include:
 - Size of area/property
 - Specific services needed
 - Frequency requirements
 - Any special requirements or challenges
 - Preferred timeline
-- Budget range (if applicable)`}
+- Budget range (if applicable)"
                     value={formData.quoteRequest || ''}
                     onChange={(e) => {
                       const newFormData = { ...formData, quoteRequest: e.target.value };
@@ -711,7 +711,53 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
                   />
                 </div>
                 
-                <div className="mt-4 pt-4 border-t">
+                <div className="mt-6 pt-4 border-t">
+                  <Button 
+                    type="button" 
+                    onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
+                    className="w-full"
+                  >
+                    Continue to Additional Services
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {/* Commercial Cleaning - Quote Request Form */}
+            {formData.serviceType === 'commercial' && (
+              <div className="space-y-6">
+                <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
+                  <p><strong>Commercial Cleaning Service:</strong></p>
+                  <p>• This service requires a custom quote based on your specific needs</p>
+                  <p>• Please provide detailed information about your requirements</p>
+                  <p>• We'll contact you within 24 hours with a personalized quote</p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="quoteRequest" className="text-lg font-medium">
+                    Service Requirements & Quote Request
+                  </Label>
+                  <Textarea
+                    id="quoteRequest"
+                    placeholder="Please describe your commercial cleaning requirements in detail. Include:
+- Size of area/property
+- Specific services needed
+- Frequency requirements
+- Any special requirements or challenges
+- Preferred timeline
+- Budget range (if applicable)"
+                    value={formData.quoteRequest || ''}
+                    onChange={(e) => {
+                      const newFormData = { ...formData, quoteRequest: e.target.value };
+                      setFormData(newFormData);
+                      updateState(newFormData, selectedExtras);
+                    }}
+                    rows={8}
+                    className="mt-2"
+                  />
+                </div>
+                
+                <div className="mt-6 pt-4 border-t">
                   <Button 
                     type="button" 
                     onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
