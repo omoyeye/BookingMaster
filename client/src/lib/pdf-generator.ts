@@ -35,21 +35,23 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
   return new Promise((resolve) => {
     const doc = new jsPDF();
     
-    // Company header
+    // Company header with logo placeholder
+    // TODO: Add company logo here when image loading is implemented
     doc.setFontSize(20);
     doc.setTextColor(40, 40, 40);
-    doc.text('CleanPro Services', 20, 20);
+    doc.text('URINAKCLEANING', 20, 20);
     
     doc.setFontSize(12);
     doc.setTextColor(80, 80, 80);
     doc.text('Professional Cleaning Services', 20, 30);
-    doc.text('Phone: (555) 123-4567', 20, 38);
-    doc.text('Email: info@cleanpro.com', 20, 46);
+    doc.text('86a High Street Beckenham, Kent, London BR3 1ED', 20, 38);
+    doc.text('Phone: +44-7786687791', 20, 46);
+    doc.text('Email: info@urinakcleaning.co.uk', 20, 54);
     
     // Receipt title
     doc.setFontSize(16);
     doc.setTextColor(40, 40, 40);
-    doc.text('BOOKING CONFIRMATION', 20, 65);
+    doc.text('BOOKING CONFIRMATION', 20, 75);
     
     // Booking ID
     doc.setFontSize(12);
@@ -193,11 +195,30 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
     doc.setTextColor(40, 40, 40);
     doc.text(`TOTAL: £${booking.totalPrice}`, 20, yPos + 8);
     
+    // Contact Information section
+    yPos += 20;
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Contact Information', 20, yPos);
+    
+    yPos += 10;
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    doc.text('For any questions or changes to your booking, please contact us:', 20, yPos);
+    yPos += 8;
+    doc.text('Phone: +44-7786687791', 20, yPos);
+    yPos += 8;
+    doc.text('Email: info@urinakcleaning.co.uk', 20, yPos);
+    yPos += 8;
+    doc.text('Business Hours: Monday - Sunday, 8:00 AM - 6:00 PM', 20, yPos);
+    
     // Footer
-    doc.setFontSize(8);
-    doc.setTextColor(120, 120, 120);
-    doc.text('Thank you for choosing CleanPro Services!', 20, 280);
-    doc.text('Our support team will contact you within 24 hours to confirm your booking.', 20, 288);
+    yPos += 20;
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Thank you for choosing URINAKCLEANING for your cleaning needs!', 20, yPos);
+    yPos += 8;
+    doc.text('We look forward to serving you!', 20, yPos);
     
     // Convert to blob
     const pdfBlob = doc.output('blob');

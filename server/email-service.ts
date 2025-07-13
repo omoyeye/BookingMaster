@@ -17,7 +17,7 @@ const emailConfig: EmailConfig = {
   port: 587,
   secure: false,
   auth: {
-    user: process.env.EMAIL_USER || 'info@cleanpro.com',
+    user: process.env.EMAIL_USER || 'info@urinakcleaning.co.uk',
     pass: process.env.EMAIL_PASS || 'your-app-password'
   }
 };
@@ -27,14 +27,15 @@ const transporter = nodemailer.createTransport(emailConfig);
 export async function sendCustomerConfirmationEmail(booking: Booking): Promise<boolean> {
   try {
     const mailOptions = {
-      from: '"CleanPro Services" <info@cleanpro.com>',
+      from: '"URINAKCLEANING" <info@urinakcleaning.co.uk>',
       to: booking.email,
-      subject: `Booking Confirmation #${booking.id} - CleanPro Services`,
+      subject: `Booking Confirmation #${booking.id} - URINAKCLEANING`,
       html: `
         <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
-            <h1 style="color: #2563eb; margin: 0;">CleanPro Services</h1>
+            <h1 style="color: #2563eb; margin: 0;">URINAKCLEANING</h1>
             <p style="margin: 5px 0; color: #666;">Professional Cleaning Services</p>
+            <p style="margin: 5px 0; color: #666;">86a High Street Beckenham, Kent, London BR3 1ED</p>
           </div>
           
           <div style="padding: 30px 20px;">
@@ -81,15 +82,17 @@ export async function sendCustomerConfirmationEmail(booking: Booking): Promise<b
             
             <div style="margin-top: 30px;">
               <h3 style="color: #374151;">Contact Information</h3>
-              <p><strong>Phone:</strong> (555) 123-4567</p>
-              <p><strong>Email:</strong> info@cleanpro.com</p>
-              <p><strong>Website:</strong> www.cleanpro.com</p>
+              <p>For any questions or changes to your booking, please contact us:</p>
+              <p><strong>Phone:</strong> +44-7786687791</p>
+              <p><strong>Email:</strong> info@urinakcleaning.co.uk</p>
+              <p><strong>Business Hours:</strong> Monday - Sunday, 8:00 AM - 6:00 PM</p>
             </div>
             
-            <p style="margin-top: 30px;">Thank you for choosing CleanPro Services. We look forward to providing you with exceptional cleaning services!</p>
+            <p style="margin-top: 30px;">Thank you for choosing URINAKCLEANING for your cleaning needs!</p>
+            <p>We look forward to serving you!</p>
             
             <p>Best regards,<br>
-            The CleanPro Team</p>
+            The URINAKCLEANING Team</p>
           </div>
           
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
@@ -112,14 +115,14 @@ export async function sendCustomerConfirmationEmail(booking: Booking): Promise<b
 export async function sendOwnerNotificationEmail(booking: Booking): Promise<boolean> {
   try {
     const mailOptions = {
-      from: '"CleanPro Booking System" <noreply@cleanpro.com>',
-      to: 'owner@cleanpro.com',
+      from: '"URINAKCLEANING Booking System" <noreply@urinakcleaning.co.uk>',
+      to: 'info@urinakcleaning.co.uk',
       subject: `New Booking Alert #${booking.id} - ${booking.serviceType} Cleaning`,
       html: `
         <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <div style="background-color: #dc2626; padding: 20px; text-align: center;">
             <h1 style="color: white; margin: 0;">NEW BOOKING ALERT</h1>
-            <p style="margin: 5px 0; color: #fca5a5;">CleanPro Services</p>
+            <p style="margin: 5px 0; color: #fca5a5;">URINAKCLEANING</p>
           </div>
           
           <div style="padding: 30px 20px;">
