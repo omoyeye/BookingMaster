@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test PDF Generation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <h1>Test PDF Generation</h1>
+    <button onclick="testPDF()">Generate Test PDF</button>
+    <div id="output"></div>
+
+    <script>
+        async function testPDF() {
+            console.log('Testing PDF generation...');
+            
+            try {
+                // Test booking data
+                const bookingData = {
+                    id: 35,
+                    serviceType: "general",
+                    frequency: "weekly",
+                    duration: 2,
+                    bookingDate: "2025-01-20",
+                    bookingTime: "14:00",
+                    fullName: "Test User",
+                    email: "test@example.com",
+                    phone: "+44-1234567890",
+                    address1: "123 Test Street",
+                    address2: "",
+                    city: "London",
+                    postcode: "SW1A 1AA",
+                    selectedExtras: ["Single Oven (x1)"],
+                    basePrice: "40.00",
+                    extrasTotal: "25.00",
+                    tipAmount: "0.00",
+                    totalPrice: "65.00",
+                    bedrooms: 1,
+                    bathrooms: 1,
+                    toilets: 0,
+                    livingRooms: 1,
+                    propertyType: "house",
+                    surfaceType: "",
+                    squareFootage: 0,
+                    specialInstructions: "Test booking",
+                    quoteRequest: ""
+                };
+
+                const doc = new jsPDF();
+                
+                // Company header
+                doc.setFontSize(20);
+                doc.setTextColor(40, 40, 40);
+                doc.text('URINAKCLEANING', 20, 20);
+                
+                doc.setFontSize(12);
+                doc.setTextColor(80, 80, 80);
+                doc.text('Professional Cleaning Services', 20, 30);
+                doc.text('86a High Street Beckenham, Kent, London BR3 1ED', 20, 38);
+                doc.text('Phone: +44-7786687791', 20, 46);
+                doc.text('Email: info@urinakcleaning.co.uk', 20, 54);
+                
+                // Receipt title
+                doc.setFontSize(16);
+                doc.setTextColor(40, 40, 40);
+                doc.text('BOOKING CONFIRMATION', 20, 70);
+                
+                // Booking ID
+                doc.setFontSize(12);
+                doc.text(`Booking ID: #${bookingData.id}`, 20, 85);
+                
+                // Service details
+                let yPos = 100;
+                doc.setFontSize(14);
+                doc.setTextColor(40, 40, 40);
+                doc.text('Service Details', 20, yPos);
+                
+                yPos += 10;
+                doc.setFontSize(10);
+                doc.setTextColor(80, 80, 80);
+                doc.text(`Service Type: ${bookingData.serviceType.charAt(0).toUpperCase() + bookingData.serviceType.slice(1)} Cleaning`, 20, yPos);
+                yPos += 8;
+                doc.text(`Frequency: ${bookingData.frequency}`, 20, yPos);
+                yPos += 8;
+                doc.text(`Duration: ${bookingData.duration} hours`, 20, yPos);
+                yPos += 8;
+                doc.text(`Date: ${bookingData.bookingDate}`, 20, yPos);
+                yPos += 8;
+                doc.text(`Time: ${bookingData.bookingTime}`, 20, yPos);
+                
+                // Customer details
+                yPos += 15;
+                doc.setFontSize(14);
+                doc.setTextColor(40, 40, 40);
+                doc.text('Customer Information', 20, yPos);
+                
+                yPos += 10;
+                doc.setFontSize(10);
+                doc.setTextColor(80, 80, 80);
+                doc.text(`Name: ${bookingData.fullName}`, 20, yPos);
+                yPos += 8;
+                doc.text(`Email: ${bookingData.email}`, 20, yPos);
+                yPos += 8;
+                doc.text(`Phone: ${bookingData.phone}`, 20, yPos);
+                yPos += 8;
+                doc.text(`Address: ${bookingData.address1}`, 20, yPos);
+                yPos += 8;
+                doc.text(`         ${bookingData.city}, ${bookingData.postcode}`, 20, yPos);
+                
+                // Pricing
+                yPos += 15;
+                doc.setFontSize(14);
+                doc.setTextColor(40, 40, 40);
+                doc.text('Pricing Breakdown', 20, yPos);
+                
+                yPos += 10;
+                doc.setFontSize(10);
+                doc.setTextColor(80, 80, 80);
+                doc.text(`Base Price: £${bookingData.basePrice}`, 20, yPos);
+                yPos += 8;
+                doc.text(`Additional Services: £${bookingData.extrasTotal}`, 20, yPos);
+                yPos += 8;
+                doc.text(`Tip: £${bookingData.tipAmount}`, 20, yPos);
+                yPos += 8;
+                
+                // Total
+                doc.setFontSize(12);
+                doc.setTextColor(40, 40, 40);
+                doc.text(`TOTAL: £${bookingData.totalPrice}`, 20, yPos + 8);
+                
+                console.log('PDF generated successfully!');
+                
+                // Download the PDF
+                doc.save(`booking-receipt-${bookingData.id}.pdf`);
+                
+                document.getElementById('output').innerHTML = '<p style="color: green;">PDF generated and downloaded successfully!</p>';
+                
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                document.getElementById('output').innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

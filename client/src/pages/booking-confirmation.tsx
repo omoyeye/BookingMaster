@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'wouter';
+import { useLocation, useParams } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { generatePDFReceipt, downloadPDF, PDFBookingData } from '@/lib/pdf-generator';
 import { Button } from '@/components/ui/button';
@@ -10,15 +10,32 @@ import { CheckCircle, Download, Calendar, Clock, MapPin, User, Phone, Mail } fro
 
 export default function BookingConfirmation() {
   const [location] = useLocation();
+  const params = useParams();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   
-  // Extract booking ID from URL
-  const bookingId = new URLSearchParams(location.split('?')[1] || '').get('bookingId');
+  // Extract booking ID from URL - Handle both query params and URL patterns
+  console.log('📄 Current location:', location);
+  console.log('📄 URL params:', location.split('?')[1]);
+  console.log('📄 Route params:', params);
+  
+  let bookingId = params?.bookingId || new URLSearchParams(location.split('?')[1] || '').get('bookingId');
+  
+  // If no bookingId in query params, try to extract from URL path
+  if (!bookingId && location.includes('bookingId=')) {
+    const match = location.match(/bookingId=(\d+)/);
+    if (match) {
+      bookingId = match[1];
+    }
+  }
+  
+  console.log('📄 Extracted booking ID:', bookingId);
   
   const { data: booking, isLoading, error } = useQuery({
     queryKey: ['/api/bookings', bookingId],
     enabled: !!bookingId,
   });
+  
+  console.log('📄 Booking query state:', { booking, isLoading, error, bookingId });
 
   const handleDownloadPDF = async () => {
     if (!booking) {
@@ -95,6 +112,48 @@ export default function BookingConfirmation() {
             <div className="text-center">
               <h2 className="text-xl font-semibold text-gray-900 mb-2">No Booking Found</h2>
               <p className="text-gray-600">Please check your booking confirmation link.</p>
+              <p className="text-sm text-gray-500 mt-2">Debug: Current URL: {location}</p>
+              <p className="text-sm text-gray-500">Expected format: /booking-confirmation?bookingId=123</p>
+              <div className="mt-4 space-y-2">
+                <p className="text-sm text-gray-500">Test PDF Generation:</p>
+                <Button 
+                  onClick={async () => {
+                    // Test PDF generation with sample data
+                    const testData = {
+                      id: 35,
+                      serviceType: "general",
+                      frequency: "weekly",
+                      duration: 2,
+                      bookingDate: "2025-01-20",
+                      bookingTime: "14:00",
+                      fullName: "Test User",
+                      email: "test@example.com",
+                      phone: "+44-1234567890",
+                      address1: "123 Test Street",
+                      address2: "",
+                      city: "London",
+                      postcode: "SW1A 1AA",
+                      selectedExtras: ["Single Oven (x1)"],
+                      basePrice: "40.00",
+                      extrasTotal: "25.00",
+                      tipAmount: "0.00",
+                      totalPrice: "65.00"
+                    };
+                    
+                    try {
+                      const pdfBlob = await generatePDFReceipt(testData);
+                      downloadPDF(pdfBlob, 'test-booking-receipt.pdf');
+                    } catch (error) {
+                      console.error('Test PDF generation failed:', error);
+                      alert('PDF generation test failed: ' + error.message);
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Test PDF Generation
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

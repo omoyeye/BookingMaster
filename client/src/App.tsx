@@ -12,6 +12,7 @@ function Router() {
     <Switch>
       <Route path="/" component={BookingPage} />
       <Route path="/booking-confirmation" component={BookingConfirmation} />
+      <Route path="/booking-confirmation/:bookingId" component={BookingConfirmation} />
       <Route component={NotFound} />
     </Switch>
   );

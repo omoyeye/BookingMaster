@@ -108,6 +108,8 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
       setSelectedTimeSlot('');
       
       // Navigate to confirmation
+      console.log('📄 Redirecting to booking confirmation with ID:', booking.id);
+      console.log('📄 Full redirect URL:', `/booking-confirmation?bookingId=${booking.id}`);
       setLocation(`/booking-confirmation?bookingId=${booking.id}`);
       toast({
         title: "Booking Confirmed!",
