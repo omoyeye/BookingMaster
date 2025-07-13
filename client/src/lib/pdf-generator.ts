@@ -40,8 +40,7 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
       const doc = new jsPDF();
       console.log('📄 jsPDF instance created successfully');
     
-      // Company header with logo placeholder
-      // TODO: Add company logo here when image loading is implemented
+      // Company header with logo and branding
       doc.setFontSize(20);
       doc.setTextColor(40, 40, 40);
       doc.text('URINAKCLEANING', 20, 20);
@@ -52,6 +51,11 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
       doc.text('86a High Street Beckenham, Kent, London BR3 1ED', 20, 38);
       doc.text('Phone: +44-7786687791', 20, 46);
       doc.text('Email: info@urinakcleaning.co.uk', 20, 54);
+      
+      // Add company logo placeholder (future enhancement)
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text('[COMPANY LOGO]', 150, 25);
       
       // Receipt title
       doc.setFontSize(16);
@@ -223,13 +227,26 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
       yPos += 8;
       doc.text('Business Hours: Monday - Sunday, 8:00 AM - 6:00 PM', 20, yPos);
       
-      // Footer
+      // Thank you message
       yPos += 20;
       doc.setFontSize(12);
       doc.setTextColor(40, 40, 40);
-      doc.text('Thank you for choosing URINAKCLEANING for your cleaning needs!', 20, yPos);
+      doc.text('Thank You for Choosing URINAKCLEANING!', 20, yPos);
+      
+      yPos += 12;
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      doc.text('We appreciate your business and look forward to providing you with excellent cleaning services.', 20, yPos);
       yPos += 8;
-      doc.text('We look forward to serving you!', 20, yPos);
+      doc.text('Our professional team will arrive on time and ensure your complete satisfaction.', 20, yPos);
+      yPos += 8;
+      doc.text('If you have any questions or need to make changes, please don\'t hesitate to contact us.', 20, yPos);
+      
+      // Footer
+      yPos += 15;
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text('This is your official booking confirmation. Please keep this receipt for your records.', 20, yPos);
       
       // Convert to blob
       console.log('📄 Converting PDF to blob...');

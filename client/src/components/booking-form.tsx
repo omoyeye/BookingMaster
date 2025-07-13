@@ -110,7 +110,12 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
       // Navigate to confirmation
       console.log('📄 Redirecting to booking confirmation with ID:', booking.id);
       console.log('📄 Full redirect URL:', `/booking-confirmation?bookingId=${booking.id}`);
-      setLocation(`/booking-confirmation?bookingId=${booking.id}`);
+      
+      // Use setTimeout to ensure state updates are complete before redirect
+      setTimeout(() => {
+        setLocation(`/booking-confirmation?bookingId=${booking.id}`);
+      }, 100);
+      
       toast({
         title: "Booking Confirmed!",
         description: "Redirecting to your booking confirmation...",

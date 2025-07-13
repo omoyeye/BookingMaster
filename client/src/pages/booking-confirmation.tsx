@@ -153,6 +153,30 @@ export default function BookingConfirmation() {
                 >
                   Test PDF Generation
                 </Button>
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-500">Quick Links:</p>
+                  <Button 
+                    onClick={() => window.location.href = '/booking-confirmation?bookingId=37'}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Load Booking #37
+                  </Button>
+                  <Button 
+                    onClick={() => window.location.href = '/booking-confirmation?bookingId=36'}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Load Booking #36
+                  </Button>
+                  <Button 
+                    onClick={() => window.location.href = '/booking-confirmation?bookingId=35'}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Load Booking #35
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
