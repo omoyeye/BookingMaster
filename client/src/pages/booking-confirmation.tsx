@@ -52,6 +52,7 @@ export default function BookingConfirmation() {
         surfaceType: booking.surfaceType,
         squareFootage: booking.squareFootage,
         specialInstructions: booking.specialInstructions,
+        quoteRequest: booking.quoteRequest,
       };
       
       const pdfBlob = await generatePDFReceipt(pdfData);

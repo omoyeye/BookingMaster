@@ -28,6 +28,7 @@ export interface PDFBookingData {
   surfaceType?: string;
   squareFootage?: number;
   specialInstructions?: string;
+  quoteRequest?: string;
 }
 
 export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
@@ -145,6 +146,30 @@ export function generatePDFReceipt(booking: PDFBookingData): Promise<Blob> {
         doc.text(`• ${extra}`, 25, yPos);
         yPos += 8;
       });
+    }
+    
+    // Quote request details
+    if (booking.quoteRequest) {
+      yPos += 15;
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.text('Quote Request Details', 20, yPos);
+      
+      yPos += 10;
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      const quoteLines = booking.quoteRequest.split('\n');
+      quoteLines.forEach(line => {
+        if (line.trim()) {
+          doc.text(line, 20, yPos);
+          yPos += 8;
+        }
+      });
+      
+      yPos += 5;
+      doc.setFontSize(10);
+      doc.setTextColor(200, 0, 0);
+      doc.text('Note: This service requires a custom quote. We will contact you within 24 hours.', 20, yPos);
     }
     
     // Pricing breakdown

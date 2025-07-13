@@ -37,6 +37,7 @@ export const bookings = pgTable("bookings", {
   city: text("city").notNull(),
   postcode: text("postcode").notNull(),
   specialInstructions: text("special_instructions"),
+  quoteRequest: text("quote_request"),
   smsReminders: boolean("sms_reminders").default(false),
   tipPercentage: integer("tip_percentage").default(0),
   customTip: decimal("custom_tip"),

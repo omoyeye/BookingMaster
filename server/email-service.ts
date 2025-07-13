@@ -178,7 +178,17 @@ export async function sendOwnerNotificationEmail(booking: Booking): Promise<bool
             ${booking.specialInstructions ? `
             <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
               <h3 style="color: #92400e; margin-top: 0;">Special Instructions</h3>
-              <p>${booking.specialInstructions}</p>
+              <p style="white-space: pre-wrap;">${booking.specialInstructions}</p>
+            </div>
+            ` : ''}
+            
+            ${booking.quoteRequest ? `
+            <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0ea5e9;">
+              <h3 style="color: #0369a1; margin-top: 0;">Quote Request Details</h3>
+              <p style="white-space: pre-wrap;">${booking.quoteRequest}</p>
+              <p style="margin-top: 15px; padding: 10px; background-color: #e0f2fe; border-radius: 4px; color: #0369a1;">
+                <strong>Action Required:</strong> This customer requires a custom quote. Please review their requirements and provide a personalized quote within 24 hours.
+              </p>
             </div>
             ` : ''}
             

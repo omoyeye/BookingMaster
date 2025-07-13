@@ -631,27 +631,38 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
               </div>
             )}
             
-            {/* Other Services - Keep existing simple form */}
-            {formData.serviceType && !['general', 'deep', 'tenancy', 'airbnb'].includes(formData.serviceType) && (
+            {/* Commercial Cleaning & Jet Washing - Quote Request Form */}
+            {(formData.serviceType === 'commercial' || formData.serviceType === 'jet') && (
               <div className="space-y-4">
+                <div className="text-sm text-muted-foreground p-3 bg-muted rounded-lg">
+                  <p><strong>{formData.serviceType === 'commercial' ? 'Commercial Cleaning' : 'Jet Washing / Garden Cleaning'} Service:</strong></p>
+                  <p>• This service requires a custom quote based on your specific needs</p>
+                  <p>• Please provide detailed information about your requirements</p>
+                  <p>• We'll contact you within 24 hours with a personalized quote</p>
+                </div>
+                
                 <div>
-                  <Label htmlFor="duration">Duration (hours)</Label>
-                  <Select value={formData.duration?.toString() || "2"} onValueChange={(value) => {
-                    const newFormData = { ...formData, duration: parseInt(value) };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select duration..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DURATION_OPTIONS.map(option => (
-                        <SelectItem key={option.value} value={option.value.toString()}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="quoteRequest" className="text-lg font-medium">
+                    Service Requirements & Quote Request
+                  </Label>
+                  <Textarea
+                    id="quoteRequest"
+                    placeholder={`Please describe your ${formData.serviceType === 'commercial' ? 'commercial cleaning' : 'jet washing/garden cleaning'} requirements in detail. Include:
+- Size of area/property
+- Specific services needed
+- Frequency requirements
+- Any special requirements or challenges
+- Preferred timeline
+- Budget range (if applicable)`}
+                    value={formData.quoteRequest || ''}
+                    onChange={(e) => {
+                      const newFormData = { ...formData, quoteRequest: e.target.value };
+                      setFormData(newFormData);
+                      updateState(newFormData, selectedExtras);
+                    }}
+                    rows={8}
+                    className="mt-2"
+                  />
                 </div>
                 
                 <div className="mt-4 pt-4 border-t">
