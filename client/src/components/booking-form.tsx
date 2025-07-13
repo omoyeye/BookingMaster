@@ -653,98 +653,120 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
                 </div>
               </div>
             )}
-            
-            {/* Jet Washing/Garden Cleaning - Quote Request Form */}
-            {formData.serviceType === 'jet' && (
-              <div className="space-y-6">
-                <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
-                  <p><strong>Jet Washing / Garden Cleaning Service:</strong></p>
-                  <p>• This service requires a custom quote based on your specific needs</p>
-                  <p>• Please provide detailed information about your requirements</p>
-                  <p>• We'll contact you within 24 hours with a personalized quote</p>
-                </div>
-                
-                <div>
-                  <Label htmlFor="quoteRequest" className="text-lg font-medium">
-                    Service Requirements & Quote Request
-                  </Label>
-                  <Textarea
-                    id="quoteRequest"
-                    placeholder="Please describe your jet washing/garden cleaning requirements in detail. Include:
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Jet Washing/Garden Cleaning - Quote Request Form */}
+      {formData.serviceType === 'jet' && (
+        <Card className="shadow-md animate-in fade-in-0 slide-in-from-bottom-4">
+          <CardHeader>
+            <CardTitle className="text-primary flex items-center">
+              {renderSectionNumber(2)}
+              <Waves className="h-5 w-5 mr-2" />
+              Jet Washing / Garden Cleaning Requirements
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div className="text-sm text-muted-foreground p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p><strong>Jet Washing / Garden Cleaning Service:</strong></p>
+                <p>• This service requires a custom quote based on your specific needs</p>
+                <p>• Please provide detailed information about your requirements</p>
+                <p>• We'll contact you within 24 hours with a personalized quote</p>
+              </div>
+              
+              <div>
+                <Label htmlFor="quoteRequest" className="text-lg font-medium">
+                  Service Requirements & Quote Request
+                </Label>
+                <Textarea
+                  id="quoteRequest"
+                  placeholder="Please describe your jet washing/garden cleaning requirements in detail. Include:
 - Size of area/property
 - Specific services needed
 - Frequency requirements
 - Any special requirements or challenges
 - Preferred timeline
 - Budget range (if applicable)"
-                    value={formData.quoteRequest || ''}
-                    onChange={(e) => {
-                      const newFormData = { ...formData, quoteRequest: e.target.value };
-                      setFormData(newFormData);
-                      updateState(newFormData, selectedExtras);
-                    }}
-                    rows={8}
-                    className="mt-2"
-                  />
-                </div>
-                
-                <div className="mt-6 pt-4 border-t">
-                  <Button 
-                    type="button" 
-                    onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-                  >
-                    Continue to Additional Services
-                  </Button>
-                </div>
+                  value={formData.quoteRequest || ''}
+                  onChange={(e) => {
+                    const newFormData = { ...formData, quoteRequest: e.target.value };
+                    setFormData(newFormData);
+                    updateState(newFormData, selectedExtras);
+                  }}
+                  rows={8}
+                  className="mt-2"
+                />
               </div>
-            )}
-            
-            {/* Commercial Cleaning - Quote Request Form */}
-            {formData.serviceType === 'commercial' && (
-              <div className="space-y-6">
-                <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
-                  <p><strong>Commercial Cleaning Service:</strong></p>
-                  <p>• This service requires a custom quote based on your specific needs</p>
-                  <p>• Please provide detailed information about your requirements</p>
-                  <p>• We'll contact you within 24 hours with a personalized quote</p>
-                </div>
-                
-                <div>
-                  <Label htmlFor="quoteRequest" className="text-lg font-medium">
-                    Service Requirements & Quote Request
-                  </Label>
-                  <Textarea
-                    id="quoteRequest"
-                    placeholder="Please describe your commercial cleaning requirements in detail. Include:
+              
+              <div className="mt-6 pt-4 border-t">
+                <Button 
+                  type="button" 
+                  onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  Continue to Additional Services
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Commercial Cleaning - Quote Request Form */}
+      {formData.serviceType === 'commercial' && (
+        <Card className="shadow-md animate-in fade-in-0 slide-in-from-bottom-4">
+          <CardHeader>
+            <CardTitle className="text-primary flex items-center">
+              {renderSectionNumber(2)}
+              <Home className="h-5 w-5 mr-2" />
+              Commercial Cleaning Requirements
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div className="text-sm text-muted-foreground p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p><strong>Commercial Cleaning Service:</strong></p>
+                <p>• This service requires a custom quote based on your specific needs</p>
+                <p>• Please provide detailed information about your requirements</p>
+                <p>• We'll contact you within 24 hours with a personalized quote</p>
+              </div>
+              
+              <div>
+                <Label htmlFor="quoteRequest" className="text-lg font-medium">
+                  Service Requirements & Quote Request
+                </Label>
+                <Textarea
+                  id="quoteRequest"
+                  placeholder="Please describe your commercial cleaning requirements in detail. Include:
 - Size of area/property
 - Specific services needed
 - Frequency requirements
 - Any special requirements or challenges
 - Preferred timeline
 - Budget range (if applicable)"
-                    value={formData.quoteRequest || ''}
-                    onChange={(e) => {
-                      const newFormData = { ...formData, quoteRequest: e.target.value };
-                      setFormData(newFormData);
-                      updateState(newFormData, selectedExtras);
-                    }}
-                    rows={8}
-                    className="mt-2"
-                  />
-                </div>
-                
-                <div className="mt-6 pt-4 border-t">
-                  <Button 
-                    type="button" 
-                    onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-                  >
-                    Continue to Additional Services
-                  </Button>
-                </div>
+                  value={formData.quoteRequest || ''}
+                  onChange={(e) => {
+                    const newFormData = { ...formData, quoteRequest: e.target.value };
+                    setFormData(newFormData);
+                    updateState(newFormData, selectedExtras);
+                  }}
+                  rows={8}
+                  className="mt-2"
+                />
               </div>
-            )}
+              
+              <div className="mt-6 pt-4 border-t">
+                <Button 
+                  type="button" 
+                  onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  Continue to Additional Services
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
