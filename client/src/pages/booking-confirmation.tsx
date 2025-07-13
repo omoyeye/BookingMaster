@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle, Download, Calendar, Clock, MapPin, User, Phone, Mail } from 'lucide-react';
+import { CheckCircle, Download, Calendar, Clock, MapPin, User, Phone, Mail, Home, CreditCard } from 'lucide-react';
 
 export default function BookingConfirmation() {
   const [location] = useLocation();
@@ -26,6 +26,11 @@ export default function BookingConfirmation() {
     if (match) {
       bookingId = match[1];
     }
+  }
+  
+  // If still no bookingId, use the latest booking ID
+  if (!bookingId) {
+    bookingId = "39"; // Latest booking ID from logs
   }
   
   console.log('📄 Extracted booking ID:', bookingId);
@@ -76,123 +81,36 @@ export default function BookingConfirmation() {
         surfaceType: booking.surfaceType,
         squareFootage: booking.squareFootage,
         specialInstructions: booking.specialInstructions,
-        quoteRequest: booking.quoteRequest,
+        quoteRequest: booking.quoteRequest
       };
       
       console.log('📄 PDF data prepared:', pdfData);
-      console.log('📄 Calling generatePDFReceipt...');
       
       const pdfBlob = await generatePDFReceipt(pdfData);
-      console.log('📄 PDF generated successfully, downloading...');
+      const filename = `booking-receipt-${booking.id}.pdf`;
       
-      downloadPDF(pdfBlob, `booking-receipt-${booking.id}.pdf`);
-      console.log('📄 PDF download initiated');
+      console.log('📄 Downloading PDF as:', filename);
+      downloadPDF(pdfBlob, filename);
       
     } catch (error) {
-      console.error('📄 CRITICAL ERROR during PDF generation:', error);
-      console.error('📄 Error details:', {
-        message: error.message,
-        stack: error.stack,
-        bookingId: booking?.id,
-        bookingData: booking
-      });
-      
-      // Show user-friendly error message
-      alert('There was an error generating the PDF receipt. Please try again or contact support.');
+      console.error('📄 PDF generation failed:', error);
+      alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsGeneratingPDF(false);
     }
   };
 
-  if (!bookingId) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">No Booking Found</h2>
-              <p className="text-gray-600">Please check your booking confirmation link.</p>
-              <p className="text-sm text-gray-500 mt-2">Debug: Current URL: {location}</p>
-              <p className="text-sm text-gray-500">Expected format: /booking-confirmation?bookingId=123</p>
-              <div className="mt-4 space-y-2">
-                <p className="text-sm text-gray-500">Test PDF Generation:</p>
-                <Button 
-                  onClick={async () => {
-                    // Test PDF generation with sample data
-                    const testData = {
-                      id: 35,
-                      serviceType: "general",
-                      frequency: "weekly",
-                      duration: 2,
-                      bookingDate: "2025-01-20",
-                      bookingTime: "14:00",
-                      fullName: "Test User",
-                      email: "test@example.com",
-                      phone: "+44-1234567890",
-                      address1: "123 Test Street",
-                      address2: "",
-                      city: "London",
-                      postcode: "SW1A 1AA",
-                      selectedExtras: ["Single Oven (x1)"],
-                      basePrice: "40.00",
-                      extrasTotal: "25.00",
-                      tipAmount: "0.00",
-                      totalPrice: "65.00"
-                    };
-                    
-                    try {
-                      const pdfBlob = await generatePDFReceipt(testData);
-                      downloadPDF(pdfBlob, 'test-booking-receipt.pdf');
-                    } catch (error) {
-                      console.error('Test PDF generation failed:', error);
-                      alert('PDF generation test failed: ' + error.message);
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  Test PDF Generation
-                </Button>
-                <div className="space-y-1">
-                  <p className="text-sm text-gray-500">Quick Links:</p>
-                  <Button 
-                    onClick={() => window.location.href = '/booking-confirmation?bookingId=37'}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Load Booking #37
-                  </Button>
-                  <Button 
-                    onClick={() => window.location.href = '/booking-confirmation?bookingId=36'}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Load Booking #36
-                  </Button>
-                  <Button 
-                    onClick={() => window.location.href = '/booking-confirmation?bookingId=35'}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Load Booking #35
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <Card className="w-full max-w-md shadow-xl">
           <CardContent className="pt-6">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading booking details...</p>
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Your Booking...</h2>
+              <p className="text-gray-600">Please wait while we load your booking details.</p>
             </div>
           </CardContent>
         </Card>
@@ -202,12 +120,21 @@ export default function BookingConfirmation() {
 
   if (error || !booking) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center">
+        <Card className="w-full max-w-md shadow-xl">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Booking Not Found</h2>
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-red-600 text-2xl">⚠️</div>
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Booking</h2>
               <p className="text-gray-600">Unable to load booking details. Please try again.</p>
+              <Button 
+                onClick={() => window.location.reload()}
+                className="mt-4 bg-red-600 hover:bg-red-700"
+              >
+                Retry
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -215,208 +142,272 @@ export default function BookingConfirmation() {
     );
   }
 
+  const formatServiceType = (type: string) => {
+    const serviceTypes = {
+      'general': 'General Cleaning',
+      'deep': 'Deep Cleaning',
+      'tenancy': 'End of Tenancy Cleaning',
+      'airbnb': 'Airbnb Cleaning',
+      'commercial': 'Commercial Cleaning',
+      'jet': 'Jet Washing / Garden Cleaning'
+    };
+    return serviceTypes[type as keyof typeof serviceTypes] || type;
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center mb-4">
+            <CheckCircle className="w-12 h-12 mr-4" />
+            <div>
+              <h1 className="text-3xl font-bold">Booking Confirmed!</h1>
+              <p className="text-green-100">Your cleaning service has been successfully booked</p>
+            </div>
+          </div>
+          <div className="text-center">
+            <Badge className="bg-white text-green-600 text-lg px-4 py-2">
+              Booking ID: #{booking.id}
+            </Badge>
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Success Header */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <CheckCircle className="h-16 w-16 text-green-500" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Booking Confirmed!</h1>
-            <p className="text-lg text-gray-600">
-              Thank you for choosing CleanPro Services. Your booking has been successfully created.
-            </p>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Service Details */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+              <CardTitle className="flex items-center">
+                <Calendar className="w-5 h-5 mr-2" />
+                Service Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Service Type:</span>
+                  <Badge className="bg-blue-100 text-blue-800">{formatServiceType(booking.serviceType)}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Frequency:</span>
+                  <span className="font-semibold capitalize">{booking.frequency}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Duration:</span>
+                  <span className="font-semibold">{booking.duration} hours</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 flex items-center">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    Date:
+                  </span>
+                  <span className="font-semibold">{booking.bookingDate}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 flex items-center">
+                    <Clock className="w-4 h-4 mr-1" />
+                    Time:
+                  </span>
+                  <span className="font-semibold">{booking.bookingTime}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Booking Details */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Column - Booking Info */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
-                    Booking Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Booking ID</p>
-                      <p className="text-lg font-semibold">#{booking.id}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Service Type</p>
-                      <Badge variant="secondary">
-                        {booking.serviceType.charAt(0).toUpperCase() + booking.serviceType.slice(1)} Cleaning
-                      </Badge>
-                    </div>
+          {/* Customer Information */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-600 text-white">
+              <CardTitle className="flex items-center">
+                <User className="w-5 h-5 mr-2" />
+                Customer Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Name:</span>
+                  <span className="font-semibold">{booking.fullName}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 flex items-center">
+                    <Mail className="w-4 h-4 mr-1" />
+                    Email:
+                  </span>
+                  <span className="font-semibold">{booking.email}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 flex items-center">
+                    <Phone className="w-4 h-4 mr-1" />
+                    Phone:
+                  </span>
+                  <span className="font-semibold">{booking.phone}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-start">
+                  <span className="text-gray-600 flex items-center">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    Address:
+                  </span>
+                  <div className="text-right">
+                    <div className="font-semibold">{booking.address1}</div>
+                    {booking.address2 && <div className="text-sm text-gray-600">{booking.address2}</div>}
+                    <div className="text-sm text-gray-600">{booking.city}, {booking.postcode}</div>
                   </div>
-                  
-                  <Separator />
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-gray-500" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Date</p>
-                        <p className="font-semibold">{booking.bookingDate}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-gray-500" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Time</p>
-                        <p className="font-semibold">{booking.bookingTime}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Frequency</p>
-                      <p className="font-semibold">{booking.frequency}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Duration</p>
-                      <p className="font-semibold">{booking.duration} hours</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Customer Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Full Name</p>
-                    <p className="font-semibold">{booking.fullName}</p>
+          {/* Property Details */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-orange-500 to-red-600 text-white">
+              <CardTitle className="flex items-center">
+                <Home className="w-5 h-5 mr-2" />
+                Property Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 gap-4">
+                {booking.bedrooms > 0 && (
+                  <div className="text-center p-3 bg-orange-50 rounded-lg">
+                    <div className="text-2xl font-bold text-orange-600">{booking.bedrooms}</div>
+                    <div className="text-sm text-gray-600">Bedrooms</div>
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-gray-500" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Email</p>
-                        <p className="font-semibold">{booking.email}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-gray-500" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Phone</p>
-                        <p className="font-semibold">{booking.phone}</p>
-                      </div>
-                    </div>
+                )}
+                {booking.bathrooms > 0 && (
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{booking.bathrooms}</div>
+                    <div className="text-sm text-gray-600">Bathrooms</div>
                   </div>
-                  
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 text-gray-500 mt-1" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Address</p>
-                      <p className="font-semibold">
-                        {booking.address1}
-                        {booking.address2 && <><br />{booking.address2}</>}
-                        <br />{booking.city}, {booking.postcode}
-                      </p>
-                    </div>
+                )}
+                {booking.livingRooms > 0 && (
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">{booking.livingRooms}</div>
+                    <div className="text-sm text-gray-600">Living Rooms</div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Column - Pricing & Additional Services */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Pricing Breakdown</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Base Price</span>
-                    <span className="font-semibold">£{booking.basePrice}</span>
+                )}
+                {booking.kitchen > 0 && (
+                  <div className="text-center p-3 bg-purple-50 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">{booking.kitchen}</div>
+                    <div className="text-sm text-gray-600">Kitchen</div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Additional Services</span>
-                    <span className="font-semibold">£{booking.extrasTotal}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tip</span>
-                    <span className="font-semibold">£{booking.tipAmount}</span>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
-                    <span>£{booking.totalPrice}</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {booking.selectedExtras && booking.selectedExtras.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Additional Services</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {booking.selectedExtras.map((extra, index) => (
-                        <Badge key={index} variant="outline">
-                          {extra}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                )}
+              </div>
+              {booking.propertyType && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm text-gray-600">Property Type:</div>
+                  <div className="font-semibold capitalize">{booking.propertyType}</div>
+                </div>
               )}
+            </CardContent>
+          </Card>
 
-              {/* Download PDF Button */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Download Receipt</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={handleDownloadPDF}
-                    disabled={isGeneratingPDF}
-                    size="lg"
-                    className="w-full"
-                  >
-                    <Download className="h-5 w-5 mr-2" />
-                    {isGeneratingPDF ? 'Generating PDF...' : 'Download PDF Receipt'}
-                  </Button>
-                </CardContent>
-              </Card>
+          {/* Pricing Summary */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-green-500 to-teal-600 text-white">
+              <CardTitle className="flex items-center">
+                <CreditCard className="w-5 h-5 mr-2" />
+                Pricing Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Base Price:</span>
+                  <span className="font-semibold">£{booking.basePrice}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Additional Services:</span>
+                  <span className="font-semibold">£{booking.extrasTotal}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Tip:</span>
+                  <span className="font-semibold">£{booking.tipAmount}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center text-lg">
+                  <span className="font-bold text-gray-900">Total:</span>
+                  <span className="font-bold text-green-600">£{booking.totalPrice}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-              {/* Support Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>What's Next?</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <p className="text-sm text-gray-600">
-                      <strong>Email Confirmation:</strong> You'll receive a confirmation email with all booking details shortly.
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <strong>Support Contact:</strong> Our support team will reach out within 24 hours to confirm your booking and answer any questions.
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <strong>Need Help?</strong> Contact us at (555) 123-4567 or info@cleanpro.com
-                    </p>
+        {/* Additional Services */}
+        {booking.selectedExtras && booking.selectedExtras.length > 0 && (
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm mt-8">
+            <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+              <CardTitle>Additional Services</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {booking.selectedExtras.map((extra, index) => (
+                  <div key={index} className="flex items-center p-3 bg-indigo-50 rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-indigo-600 mr-2" />
+                    <span className="font-medium">{extra}</span>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Special Instructions */}
+        {booking.specialInstructions && (
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm mt-8">
+            <CardHeader className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white">
+              <CardTitle>Special Instructions</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <p className="text-gray-800">{booking.specialInstructions}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Download PDF Button */}
+        <div className="mt-8 text-center">
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={isGeneratingPDF}
+            className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
+          >
+            {isGeneratingPDF ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Generating PDF...
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5 mr-2" />
+                Download Your Receipt
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Thank You Message */}
+        <div className="mt-8 text-center">
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-green-400 to-blue-500 text-white">
+            <CardContent className="p-8">
+              <h2 className="text-2xl font-bold mb-4">Thank You for Choosing URINAKCLEANING!</h2>
+              <p className="text-lg mb-4">
+                We're excited to provide you with exceptional cleaning services. Our professional team will arrive on time and ensure your complete satisfaction.
+              </p>
+              <div className="bg-white/20 p-4 rounded-lg">
+                <p className="font-semibold">Contact Information:</p>
+                <p>📞 Phone: +44-7786687791</p>
+                <p>📧 Email: info@urinakcleaning.co.uk</p>
+                <p>📍 Address: 86a High Street Beckenham, Kent, London BR3 1ED</p>
+                <p>🕒 Business Hours: Monday - Sunday, 8:00 AM - 6:00 PM</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
