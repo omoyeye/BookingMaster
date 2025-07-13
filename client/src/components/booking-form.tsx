@@ -280,51 +280,26 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
                 </SelectContent>
               </Select>
             </div>
-            {formData.serviceType === 'general' && (
-              <div>
-                <Label htmlFor="frequency">Frequency</Label>
-                <div className="grid grid-cols-4 gap-2 mt-2">
-                  {FREQUENCY_OPTIONS.map(option => (
-                    <Button
-                      key={option.value}
-                      type="button"
-                      variant={formData.frequency === option.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        const newFormData = { ...formData, frequency: option.value };
-                        setFormData(newFormData);
-                        updateState(newFormData, selectedExtras);
-                      }}
-                      className="text-xs"
-                    >
-                      {option.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
             
-            {formData.serviceType !== 'general' && (
-              <div>
-                <Label htmlFor="frequency">Frequency</Label>
-                <Select value={formData.frequency} onValueChange={(value) => {
-                  const newFormData = { ...formData, frequency: value };
-                  setFormData(newFormData);
-                  updateState(newFormData, selectedExtras);
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select frequency..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FREQUENCY_OPTIONS.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div>
+              <Label htmlFor="frequency">Frequency</Label>
+              <Select value={formData.frequency} onValueChange={(value) => {
+                const newFormData = { ...formData, frequency: value };
+                setFormData(newFormData);
+                updateState(newFormData, selectedExtras);
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select frequency..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {FREQUENCY_OPTIONS.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -761,7 +736,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
                   <Button 
                     type="button" 
                     onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
-                    className="w-full"
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
                   >
                     Continue to Additional Services
                   </Button>
