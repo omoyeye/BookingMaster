@@ -21,10 +21,17 @@ export default function BookingConfirmation() {
   });
 
   const handleDownloadPDF = async () => {
-    if (!booking) return;
+    if (!booking) {
+      console.error('📄 No booking data available for PDF generation');
+      return;
+    }
+    
+    console.log('📄 Starting PDF download process for booking:', booking.id);
+    console.log('📄 Raw booking data:', booking);
     
     setIsGeneratingPDF(true);
     try {
+      console.log('📄 Mapping booking data to PDF format...');
       const pdfData: PDFBookingData = {
         id: booking.id,
         serviceType: booking.serviceType,
@@ -55,10 +62,26 @@ export default function BookingConfirmation() {
         quoteRequest: booking.quoteRequest,
       };
       
+      console.log('📄 PDF data prepared:', pdfData);
+      console.log('📄 Calling generatePDFReceipt...');
+      
       const pdfBlob = await generatePDFReceipt(pdfData);
+      console.log('📄 PDF generated successfully, downloading...');
+      
       downloadPDF(pdfBlob, `booking-receipt-${booking.id}.pdf`);
+      console.log('📄 PDF download initiated');
+      
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('📄 CRITICAL ERROR during PDF generation:', error);
+      console.error('📄 Error details:', {
+        message: error.message,
+        stack: error.stack,
+        bookingId: booking?.id,
+        bookingData: booking
+      });
+      
+      // Show user-friendly error message
+      alert('There was an error generating the PDF receipt. Please try again or contact support.');
     } finally {
       setIsGeneratingPDF(false);
     }
