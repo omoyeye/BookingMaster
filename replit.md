@@ -207,4 +207,6 @@ Preferred communication style: Simple, everyday language.
 - **UPDATED JET WASHING SECTION** - Redesigned jet washing/garden cleaning form to match provided image layout
 - **SEPARATED SERVICE TYPES** - Split commercial cleaning and jet washing into distinct sections for better UX
 - **ENHANCED QUOTE REQUEST FORM** - Added detailed placeholder text and improved visual layout for service requirements
+- **ADDED JET WASHING QUOTE REQUEST** - Implemented textarea for jet washing customers to request custom quotes
+- **CONSISTENT QUOTE FUNCTIONALITY** - Both commercial cleaning and jet washing now have identical quote request forms
 - **SUCCESSFULLY RESTORED APP FUNCTIONALITY** - Application now runs without crashes and handles all service types properly

@@ -690,7 +690,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
                   <Button 
                     type="button" 
                     onClick={() => setVisibleSections(prev => [...prev, 'additionalServices'])}
-                    className="w-full"
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
                   >
                     Continue to Additional Services
                   </Button>
