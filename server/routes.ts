@@ -141,51 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/create", async (req, res) => {
-    try {
-      const { username, password, email, role } = req.body;
-      
-      // Validate input
-      if (!username || !password || !email) {
-        return res.status(400).json({ error: "Username, password, and email are required" });
-      }
 
-      // Check if admin user already exists
-      const existingAdmin = await storage.getAdminUserByUsername(username);
-      if (existingAdmin) {
-        return res.status(409).json({ error: "Admin user already exists" });
-      }
-
-      // Hash password
-      const hashedPassword = await hashPassword(password);
-
-      // Create admin user
-      const adminData = {
-        username,
-        password: hashedPassword,
-        email,
-        role: role || "admin"
-      };
-
-      const validatedData = insertAdminUserSchema.parse(adminData);
-      const adminUser = await storage.createAdminUser(validatedData);
-
-      // Return admin user without password
-      const { password: _, ...adminResponse } = adminUser;
-      res.status(201).json({
-        success: true,
-        admin: adminResponse,
-        message: "Admin user created successfully"
-      });
-    } catch (error) {
-      console.error('Admin creation error:', error);
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ error: "Validation error", details: error.errors });
-      } else {
-        res.status(500).json({ error: "Failed to create admin user" });
-      }
-    }
-  });
 
   // Customer Reminder Routes
   app.post("/api/admin/reminders", verifyAdminToken, async (req, res) => {

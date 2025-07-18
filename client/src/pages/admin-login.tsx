@@ -48,9 +48,7 @@ const AdminLogin = () => {
     }
   };
 
-  const handleCreateAdmin = () => {
-    navigate('/admin/create');
-  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
@@ -129,19 +127,7 @@ const AdminLogin = () => {
               {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
             </Button>
             
-            <div className="text-center pt-4 border-t">
-              <p className="text-sm text-gray-600 mb-2">
-                Don't have an admin account?
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCreateAdmin}
-                className="text-blue-600 hover:bg-blue-50"
-              >
-                Create Admin Account
-              </Button>
-            </div>
+
           </form>
         </CardContent>
       </Card>

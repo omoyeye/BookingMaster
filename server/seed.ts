@@ -1,5 +1,6 @@
 import { db } from "./db";
-import { serviceExtras } from "@shared/schema";
+import { serviceExtras, adminUsers } from "@shared/schema";
+import bcrypt from 'bcrypt';
 
 async function seedDatabase() {
   console.log("Seeding database...");
@@ -73,6 +74,25 @@ async function seedDatabase() {
 
   await db.insert(serviceExtras).values(extras);
   
+  // Insert default admin user
+  console.log("Creating default admin user...");
+  
+  // Clear existing admin users
+  await db.delete(adminUsers);
+  
+  // Hash the default admin password
+  const hashedPassword = await bcrypt.hash('admin123!', 10);
+  
+  // Create default admin user
+  await db.insert(adminUsers).values({
+    username: 'urinak',
+    password: hashedPassword,
+    email: 'info@urinakcleaning.co.uk',
+    role: 'admin'
+  });
+  
+  console.log(`Seeded ${extras.length} service extras`);
+  console.log("Created default admin user: urinak / admin123!");
   console.log("Database seeded successfully!");
 }
 
