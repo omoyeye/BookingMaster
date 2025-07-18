@@ -67,7 +67,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
 
   const [selectedExtras, setSelectedExtras] = useState<any[]>([]);
   const [extrasQuantities, setExtrasQuantities] = useState<{[key: number]: number}>({});
-  const [visibleSections, setVisibleSections] = useState<string[]>([]);
+  const [currentStep, setCurrentStep] = useState(1);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
 
   const { toast } = useToast();
@@ -104,7 +104,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
       setFormData(initialData);
       setSelectedExtras([]);
       setExtrasQuantities({});
-      setVisibleSections([]);
+      setCurrentStep(1);
       setSelectedTimeSlot('');
       
       // Navigate to confirmation - immediate redirect
@@ -162,31 +162,54 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     });
   };
 
-  const showNextSection = () => {
-    const allSections = [
-      'propertyDetails', 'surfaceDetails', 'additionalServices', 
-      'dateTime', 'customerDetails', 'address', 'additionalInfo', 
-      'tip', 'submitSection'
+  // Define step structure based on service type
+  const getStepStructure = (serviceType: string) => {
+    const baseSteps = [
+      { id: 1, name: 'service', title: 'Service Type' },
+      { id: 2, name: 'property', title: serviceType === 'jet' ? 'Surface Details' : 'Property Details' },
+      { id: 3, name: 'extras', title: 'Additional Services' },
+      { id: 4, name: 'datetime', title: 'Date & Time' },
+      { id: 5, name: 'customer', title: 'Customer Details' },
+      { id: 6, name: 'address', title: 'Address Details' },
+      { id: 7, name: 'additional', title: 'Additional Information' },
+      { id: 8, name: 'tip', title: 'Tip Selection' },
+      { id: 9, name: 'review', title: 'Review & Submit' }
     ];
     
-    const nextSection = allSections.find(section => !visibleSections.includes(section));
-    if (nextSection) {
-      setVisibleSections(prev => [...prev, nextSection]);
+    // For commercial and jet washing services, skip some steps
+    if (serviceType === 'commercial' || serviceType === 'jet') {
+      return baseSteps.filter(step => step.name !== 'extras' && step.name !== 'tip');
+    }
+    
+    return baseSteps;
+  };
+
+  const steps = getStepStructure(formData.serviceType);
+  const totalSteps = steps.length;
+
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const previousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  const goToStep = (stepNumber: number) => {
+    if (stepNumber >= 1 && stepNumber <= totalSteps) {
+      setCurrentStep(stepNumber);
     }
   };
 
   const handleServiceTypeChange = (value: string) => {
     const newFormData = { ...formData, serviceType: value };
     setFormData(newFormData);
-    setVisibleSections([]);
     setSelectedExtras([]);
-    
-    // Show appropriate section based on service type
-    if (value === 'jet') {
-      setVisibleSections(['surfaceDetails']);
-    } else {
-      setVisibleSections(['propertyDetails']);
-    }
+    setCurrentStep(1); // Reset to first step when service type changes
     
     updateState(newFormData, []);
   };
@@ -209,7 +232,7 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     setSelectedTimeSlot(time);
     const newFormData = { ...formData, bookingTime: time };
     setFormData(newFormData);
-    showNextSection();
+    nextStep();
     updateState(newFormData, selectedExtras);
   };
 
@@ -254,60 +277,124 @@ export default function BookingForm({ onPricingChange, onExtrasChange, onFormDat
     </div>
   );
 
+  // Step indicator component
+  const StepIndicator = () => (
+    <div className="mb-6 bg-white rounded-lg shadow-md p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <span className="text-sm font-medium text-gray-600">Step {currentStep} of {totalSteps}</span>
+        </div>
+        <div className="flex space-x-1">
+          {steps.map((step, index) => (
+            <div 
+              key={step.id}
+              className={`w-3 h-3 rounded-full ${
+                index + 1 === currentStep 
+                  ? 'bg-primary' 
+                  : index + 1 < currentStep 
+                    ? 'bg-green-500' 
+                    : 'bg-gray-300'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="mt-2">
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-primary h-2 rounded-full transition-all duration-300"
+            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  // Navigation buttons component
+  const NavigationButtons = ({ onNext, onPrev, canProceed = true }: {
+    onNext?: () => void;
+    onPrev?: () => void;
+    canProceed?: boolean;
+  }) => (
+    <div className="flex justify-between pt-4 border-t">
+      <Button 
+        type="button" 
+        variant="outline" 
+        onClick={onPrev || previousStep}
+        disabled={currentStep === 1}
+      >
+        Previous
+      </Button>
+      <Button 
+        type="button" 
+        onClick={onNext || nextStep}
+        disabled={!canProceed}
+      >
+        {currentStep === totalSteps ? 'Review' : 'Next'}
+      </Button>
+    </div>
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Service Type Selection */}
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle className="text-primary flex items-center">
-            {renderSectionNumber(1)}
-            <Home className="h-5 w-5 mr-2" />
-            Service Type
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="serviceType">Type of Service</Label>
-              <Select value={formData.serviceType} onValueChange={handleServiceTypeChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select service type..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(SERVICE_DATA).map(([key, service]) => (
-                    <SelectItem key={key} value={key}>
-                      {service.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      <StepIndicator />
+      
+      {/* Step 1: Service Type Selection */}
+      {currentStep === 1 && (
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle className="text-primary flex items-center">
+              {renderSectionNumber(1)}
+              <Home className="h-5 w-5 mr-2" />
+              Service Type
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="serviceType">Type of Service</Label>
+                <Select value={formData.serviceType} onValueChange={handleServiceTypeChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select service type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(SERVICE_DATA).map(([key, service]) => (
+                      <SelectItem key={key} value={key}>
+                        {service.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="frequency">Frequency</Label>
+                <Select value={formData.frequency} onValueChange={(value) => {
+                  const newFormData = { ...formData, frequency: value };
+                  setFormData(newFormData);
+                  updateState(newFormData, selectedExtras);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select frequency..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FREQUENCY_OPTIONS.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
-            <div>
-              <Label htmlFor="frequency">Frequency</Label>
-              <Select value={formData.frequency} onValueChange={(value) => {
-                const newFormData = { ...formData, frequency: value };
-                setFormData(newFormData);
-                updateState(newFormData, selectedExtras);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select frequency..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {FREQUENCY_OPTIONS.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            <NavigationButtons canProceed={!!formData.serviceType} />
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Property Details - Simplified for General/Standard Cleaning */}
-      {visibleSections.includes('propertyDetails') && (
+      {/* Step 2: Property Details */}
+      {currentStep === 2 && (
         <Card className="shadow-md animate-in fade-in-0 slide-in-from-bottom-4">
           <CardHeader>
             <CardTitle className="text-primary flex items-center">

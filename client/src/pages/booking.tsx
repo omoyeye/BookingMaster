@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import BookingForm from "@/components/booking-form";
+import BookingForm from "@/components/booking-form-wizard";
 import PricingSidebar from "@/components/pricing-sidebar";
 import ErrorBoundary from "@/components/error-boundary";
 import { Button } from "@/components/ui/button";
