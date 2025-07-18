@@ -44,12 +44,6 @@ const AdminDashboard = () => {
   // Fetch reminders
   const { data: reminders = [] } = useQuery<CustomerReminder[]>({
     queryKey: ['/api/admin/reminders'],
-    queryFn: async () => {
-      return await apiRequest('/api/admin/reminders', {
-        method: 'GET',
-        headers: { 'X-Admin-Id': admin.id.toString() },
-      });
-    },
     refetchInterval: 30000,
   });
 
@@ -123,12 +117,6 @@ const AdminDashboard = () => {
   // Fetch all bookings
   const { data: bookings = [], isLoading, error } = useQuery<Booking[]>({
     queryKey: ['/api/admin/bookings'],
-    queryFn: async () => {
-      return await apiRequest('/api/admin/bookings', {
-        method: 'GET',
-        headers: { 'X-Admin-Id': admin.id.toString() },
-      });
-    },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -259,12 +247,8 @@ const AdminDashboard = () => {
               disabled={autoCreateRemindersMutation.isPending}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {autoCreateRemindersMutation.isPending ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              ) : (
-                <Bell className="w-4 h-4 mr-2" />
-              )}
-              {autoCreateRemindersMutation.isPending ? 'Creating...' : 'Auto-Create Reminders'}
+              <Bell className="w-4 h-4 mr-2" />
+              Auto-Create Reminders
             </Button>
             <Button
               onClick={handleLogout}
@@ -297,11 +281,7 @@ const AdminDashboard = () => {
                 <div>
                   <p className="text-sm text-gray-600">Today's Bookings</p>
                   <p className="text-2xl font-bold">
-                    {bookings.filter(b => {
-                      const today = new Date();
-                      const bookingDate = new Date(b.bookingDate);
-                      return bookingDate.toDateString() === today.toDateString();
-                    }).length}
+                    {bookings.filter(b => b.bookingDate === format(new Date(), 'yyyy-MM-dd')).length}
                   </p>
                 </div>
                 <Clock className="h-8 w-8 text-green-500" />
@@ -327,10 +307,7 @@ const AdminDashboard = () => {
                 <div>
                   <p className="text-sm text-gray-600">Revenue</p>
                   <p className="text-2xl font-bold">
-                    £{bookings.reduce((sum, b) => {
-                      const price = parseFloat(b.totalPrice || '0');
-                      return sum + (isNaN(price) ? 0 : price);
-                    }, 0).toFixed(2)}
+                    £{bookings.reduce((sum, b) => sum + parseFloat(b.totalPrice || '0'), 0).toFixed(2)}
                   </p>
                 </div>
                 <User className="h-8 w-8 text-purple-500" />
@@ -396,12 +373,7 @@ const AdminDashboard = () => {
                     Active Reminders: {reminders.filter(r => r.status === 'pending').length}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Sent Today: {reminders.filter(r => {
-                      if (r.status !== 'sent' || !r.sentAt) return false;
-                      const sentDate = new Date(r.sentAt);
-                      const today = new Date();
-                      return sentDate.toDateString() === today.toDateString();
-                    }).length}
+                    Sent Today: {reminders.filter(r => r.status === 'sent' && r.sentAt && new Date(r.sentAt).toDateString() === new Date().toDateString()).length}
                   </p>
                 </div>
                 <Dialog>
@@ -429,14 +401,9 @@ const AdminDashboard = () => {
                             <SelectValue placeholder="Choose a booking" />
                           </SelectTrigger>
                           <SelectContent>
-                            {bookings.filter(b => {
-                              const bookingDate = new Date(b.bookingDate);
-                              const today = new Date();
-                              today.setHours(0, 0, 0, 0);
-                              return bookingDate >= today;
-                            }).map(booking => (
+                            {bookings.filter(b => new Date(b.bookingDate) >= new Date()).map(booking => (
                               <SelectItem key={booking.id} value={booking.id.toString()}>
-                                #{booking.id} - {booking.fullName} - {format(parseISO(booking.bookingDate), 'PPP')}
+                                #{booking.id} - {booking.fullName} - {booking.bookingDate}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -660,50 +627,18 @@ const AdminDashboard = () => {
                         )}
                         
                         <div className="mt-3 pt-3 border-t">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedBooking(booking);
-                                  setReminderMessage(`Hi ${booking.fullName}, we wanted to remind you that your ${getServiceName(booking.serviceType)} service is scheduled for ${format(parseISO(booking.bookingDate), 'PPP')} at ${formatTime(booking.bookingTime)}. Please ensure someone is available to provide access to the property.`);
-                                }}
-                                className="w-full"
-                              >
-                                <Bell className="w-4 h-4 mr-2" />
-                                Create Reminder
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                <DialogTitle>Create Reminder for #{booking.id}</DialogTitle>
-                                <DialogDescription>
-                                  Send a reminder to {booking.fullName} about their upcoming booking.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div>
-                                  <Label>Message</Label>
-                                  <Textarea
-                                    value={reminderMessage}
-                                    onChange={(e) => setReminderMessage(e.target.value)}
-                                    rows={4}
-                                    placeholder="Enter reminder message..."
-                                  />
-                                </div>
-                                <div className="flex justify-end space-x-2">
-                                  <Button
-                                    onClick={handleCreateReminder}
-                                    disabled={!reminderMessage.trim() || createReminderMutation.isPending}
-                                  >
-                                    <Send className="w-4 h-4 mr-2" />
-                                    {createReminderMutation.isPending ? 'Creating...' : 'Create Reminder'}
-                                  </Button>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedBooking(booking);
+                              setReminderMessage('We wanted to remind you that your cleaning service is scheduled for tomorrow. Please ensure someone is available to provide access to the property.');
+                            }}
+                            className="w-full"
+                          >
+                            <Bell className="w-4 h-4 mr-2" />
+                            Create Reminder
+                          </Button>
                         </div>
                       </div>
                     </div>
