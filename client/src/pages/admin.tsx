@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, User, Mail, Phone, MapPin, AlertTriangle, Check, X, Bell, Send, Plus, LogOut } from 'lucide-react';
 import { format, parseISO, isSameDay, differenceInMinutes } from 'date-fns';
-import { apiRequest } from '@/lib/queryClient';
+
 import type { Booking, CustomerReminder } from '@shared/schema';
 import { useLocation } from 'wouter';
 
@@ -45,10 +45,18 @@ const AdminDashboard = () => {
   const { data: reminders = [] } = useQuery<CustomerReminder[]>({
     queryKey: ['/api/admin/reminders'],
     queryFn: async () => {
-      return await apiRequest('/api/admin/reminders', {
+      const res = await fetch('/api/admin/reminders', {
         method: 'GET',
-        headers: { 'X-Admin-Id': admin.id.toString() },
+        headers: { 
+          'X-Admin-Id': admin.id.toString(),
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
       });
+      if (!res.ok) {
+        throw new Error(`${res.status}: ${await res.text()}`);
+      }
+      return await res.json();
     },
     refetchInterval: 30000,
   });
@@ -56,11 +64,19 @@ const AdminDashboard = () => {
   // Create reminder mutation
   const createReminderMutation = useMutation({
     mutationFn: async (reminderData: { bookingId: number; message: string }) => {
-      return await apiRequest('/api/admin/reminders', {
+      const res = await fetch('/api/admin/reminders', {
         method: 'POST',
-        headers: { 'X-Admin-Id': admin.id.toString() },
-        body: reminderData,
+        headers: { 
+          'X-Admin-Id': admin.id.toString(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reminderData),
+        credentials: 'include'
       });
+      if (!res.ok) {
+        throw new Error(`${res.status}: ${await res.text()}`);
+      }
+      return await res.json();
     },
     onSuccess: () => {
       toast({
@@ -83,10 +99,18 @@ const AdminDashboard = () => {
   // Auto-create reminders mutation
   const autoCreateRemindersMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/admin/reminders/auto-create', {
+      const res = await fetch('/api/admin/reminders/auto-create', {
         method: 'POST',
-        headers: { 'X-Admin-Id': admin.id.toString() },
+        headers: { 
+          'X-Admin-Id': admin.id.toString(),
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
       });
+      if (!res.ok) {
+        throw new Error(`${res.status}: ${await res.text()}`);
+      }
+      return await res.json();
     },
     onSuccess: (data) => {
       toast({
@@ -124,10 +148,18 @@ const AdminDashboard = () => {
   const { data: bookings = [], isLoading, error } = useQuery<Booking[]>({
     queryKey: ['/api/admin/bookings'],
     queryFn: async () => {
-      return await apiRequest('/api/admin/bookings', {
+      const res = await fetch('/api/admin/bookings', {
         method: 'GET',
-        headers: { 'X-Admin-Id': admin.id.toString() },
+        headers: { 
+          'X-Admin-Id': admin.id.toString(),
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
       });
+      if (!res.ok) {
+        throw new Error(`${res.status}: ${await res.text()}`);
+      }
+      return await res.json();
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
