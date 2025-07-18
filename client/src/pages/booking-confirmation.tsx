@@ -18,9 +18,23 @@ export default function BookingConfirmation() {
   console.log('📄 URL params:', location.split('?')[1]);
   console.log('📄 Route params:', params);
   
-  let bookingId = params?.bookingId || new URLSearchParams(location.split('?')[1] || '').get('bookingId');
+  let bookingId = null;
   
-  // If no bookingId in query params, try to extract from URL path
+  // Try to get from route params first
+  if (params?.bookingId) {
+    bookingId = params.bookingId;
+  }
+  
+  // Try to get from query string
+  if (!bookingId) {
+    const queryString = location.split('?')[1];
+    if (queryString) {
+      const urlParams = new URLSearchParams(queryString);
+      bookingId = urlParams.get('bookingId');
+    }
+  }
+  
+  // Try to extract from URL path pattern
   if (!bookingId && location.includes('bookingId=')) {
     const match = location.match(/bookingId=(\d+)/);
     if (match) {
@@ -28,9 +42,17 @@ export default function BookingConfirmation() {
     }
   }
   
-  // If still no bookingId, use the latest booking ID
+  // Try to extract from window.location.search if still nothing
+  if (!bookingId && typeof window !== 'undefined' && window.location.search) {
+    const urlParams = new URLSearchParams(window.location.search);
+    bookingId = urlParams.get('bookingId');
+  }
+  
+  console.log('📄 Extracted booking ID:', bookingId);
+  
+  // If still no bookingId, show error state
   if (!bookingId) {
-    bookingId = "39"; // Latest booking ID from logs
+    console.error('📄 No booking ID found in URL');
   }
   
   console.log('📄 Extracted booking ID:', bookingId);
@@ -123,6 +145,30 @@ export default function BookingConfirmation() {
     );
   }
 
+  if (!bookingId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center">
+        <Card className="w-full max-w-md shadow-xl">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-red-600 text-2xl">⚠️</div>
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">No Booking ID Found</h2>
+              <p className="text-gray-600">Unable to find booking ID in URL. Please check your booking confirmation link.</p>
+              <Button 
+                onClick={() => window.location.href = '/'}
+                className="mt-4 bg-red-600 hover:bg-red-700"
+              >
+                Return to Home
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (error || !booking) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center">
@@ -133,7 +179,7 @@ export default function BookingConfirmation() {
                 <div className="text-red-600 text-2xl">⚠️</div>
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Booking</h2>
-              <p className="text-gray-600">Unable to load booking details. Please try again.</p>
+              <p className="text-gray-600">Unable to load booking #{bookingId}. Please try again.</p>
               <Button 
                 onClick={() => window.location.reload()}
                 className="mt-4 bg-red-600 hover:bg-red-700"

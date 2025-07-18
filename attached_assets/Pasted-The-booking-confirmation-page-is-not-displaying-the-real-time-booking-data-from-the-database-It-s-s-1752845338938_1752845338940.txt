@@ -1,0 +1,49 @@
+The booking confirmation page is not displaying the real-time booking data from the database. It's showing a hardcoded fallback booking (ID 39) instead of the newly created booking.
+
+CRITICAL ISSUES TO FIX:
+
+1. **BOOKING FORM REDIRECT ISSUE:**
+   - File: client/src/components/booking-form-wizard.tsx
+   - Problem: The redirect to confirmation page is not properly passing the booking ID in the URL
+   - Current redirect is not formatted correctly to include the bookingId parameter
+
+2. **CONFIRMATION PAGE URL PARSING ISSUE:**
+   - File: client/src/pages/booking-confirmation.tsx  
+   - Problem: URL parameter extraction logic is failing and defaulting to hardcoded ID "39"
+   - Line issue: `if (!bookingId) { bookingId = "39"; // Latest booking ID from logs }`
+
+3. **URL STRUCTURE MISMATCH:**
+   - The booking form is redirecting but not properly constructing the URL with query parameters
+   - The confirmation page expects either route params or query params but receives neither
+
+SPECIFIC FIXES NEEDED:
+
+**Fix 1 - Booking Form Redirect (booking-form-wizard.tsx):**
+- Locate the redirect logic after successful booking submission
+- Change the redirect to properly include the booking ID as a query parameter
+- Ensure the URL format is: `/booking-confirmation?bookingId=${response.id}`
+
+**Fix 2 - Remove Hardcoded Fallback (booking-confirmation.tsx):**
+- Remove the hardcoded fallback: `bookingId = "39"`
+- Add proper error handling for when no booking ID is provided
+- Show an error state instead of loading old booking data
+
+**Fix 3 - URL Parameter Extraction:**
+- Fix the URL parameter extraction logic to properly get bookingId from query string
+- Ensure compatibility with both wouter routing and query parameters
+- Test with URLs like: `/booking-confirmation?bookingId=43`
+
+REQUIREMENTS:
+- The confirmation page MUST show the actual booking data for the newly created booking
+- Remove all hardcoded booking ID references
+- Ensure proper URL parameter passing from form submission to confirmation
+- Add proper error handling if booking ID is missing or invalid
+- Test the complete flow from form submission to confirmation page display
+
+PRIORITY:
+1. Fix the redirect URL construction in booking form
+2. Remove hardcoded fallback booking ID
+3. Fix URL parameter extraction logic
+4. Add proper error states for missing booking ID
+
+The goal is to ensure that when a user submits a booking form, they are redirected to see THEIR booking details, not old test data.
