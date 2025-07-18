@@ -1,0 +1,58 @@
+I have multiple critical errors in my React booking form system that need immediate fixing:
+
+CRITICAL ERRORS TO FIX:
+
+1. **ADMIN PAGE ERROR (BLOCKING):**
+   - File: client/src/pages/admin.tsx
+   - Error: "Cannot access 'parseTimeToMinutes' before initialization"
+   - Issue: Function is being used before it's defined
+   - Fix: Move the parseTimeToMinutes function definition BEFORE line 29 where it's first used
+
+2. **SELECT COMPONENT ERROR (BLOCKING):**
+   - Error: "A <Select.Item /> must have a value prop that is not an empty string"
+   - Issue: Some SelectItem components have empty string values
+   - Fix: Find all SelectItem components with value="" and replace with valid non-empty values
+
+3. **BOOKING FORM BROKEN REFERENCES:**
+   - File: client/src/components/booking-form.tsx
+   - Issues:
+     a) `visibleSections` is referenced but never defined as state
+     b) `showNextSection()` function is called but doesn't exist
+     c) Mixed step-based and section-based navigation causing conflicts
+
+4. **FORM NAVIGATION ERRORS:**
+   - The form tries to use both `currentStep` navigation AND `visibleSections` approach
+   - This creates undefined function calls and broken form flow
+   - Need to choose ONE navigation pattern and implement it completely
+
+SPECIFIC FIXES NEEDED:
+
+**Fix 1 - Admin Page:**
+Move parseTimeToMinutes function definition to the top of the component, before any usage.
+
+**Fix 2 - Select Components:**
+Replace any SelectItem with value="" to have proper non-empty values.
+
+**Fix 3 - Booking Form Navigation:**
+Either:
+- OPTION A: Complete the step-based navigation (remove all visibleSections references)
+- OPTION B: Implement proper visibleSections state management (remove step navigation)
+
+**Fix 4 - Form Flow:**
+Remove all calls to undefined functions like `showNextSection()` and replace with proper navigation logic.
+
+REQUIREMENTS:
+- Fix all console errors immediately
+- Maintain existing form functionality
+- Don't change form content or styling
+- Ensure proper form submission and PDF generation still works
+- Keep all validation and pricing calculations intact
+
+PRIORITY ORDER:
+1. Fix admin parseTimeToMinutes error (critical - blocks admin page)
+2. Fix SelectItem empty value errors
+3. Choose and implement ONE navigation pattern for booking form
+4. Remove all undefined function references
+5. Test complete booking flow end-to-end
+
+Please fix these errors systematically and ensure the booking system loads and functions properly without console errors.
