@@ -106,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin endpoints
-  app.get("/api/admin/bookings", async (req, res) => {
+  app.get("/api/admin/bookings", verifyAdminToken, async (req, res) => {
     try {
       const bookings = await storage.getAllBookings();
       res.json(bookings);
@@ -116,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/conflicts", async (req, res) => {
+  app.get("/api/admin/conflicts", verifyAdminToken, async (req, res) => {
     try {
       const bookings = await storage.getAllBookings();
       const conflicts = detectCalendarConflicts(bookings);
