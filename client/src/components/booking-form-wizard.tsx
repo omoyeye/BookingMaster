@@ -805,14 +805,14 @@ export default function BookingFormWizard({ onPricingChange, onExtrasChange, onF
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
                         {TIME_SLOTS.map((time) => (
                           <Button
-                            key={time}
+                            key={time.value}
                             type="button"
-                            variant={selectedTimeSlot === time ? "default" : "outline"}
+                            variant={selectedTimeSlot === time.value ? "default" : "outline"}
                             size="sm"
-                            onClick={() => handleTimeSlotSelect(time)}
+                            onClick={() => handleTimeSlotSelect(time.value)}
                             className="text-xs"
                           >
-                            {time}
+                            {time.label}
                           </Button>
                         ))}
                       </div>
