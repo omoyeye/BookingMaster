@@ -8,6 +8,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   getBooking(id: number): Promise<Booking | undefined>;
+  getAllBookings(): Promise<Booking[]>;
   getServiceExtras(serviceType: string): Promise<ServiceExtra[]>;
   createServiceExtra(extra: InsertServiceExtra): Promise<ServiceExtra>;
 }
@@ -34,7 +35,7 @@ export class DatabaseStorage implements IStorage {
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
     const [booking] = await db
       .insert(bookings)
-      .values([insertBooking])
+      .values(insertBooking)
       .returning();
     return booking;
   }
@@ -42,6 +43,10 @@ export class DatabaseStorage implements IStorage {
   async getBooking(id: number): Promise<Booking | undefined> {
     const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
     return booking || undefined;
+  }
+
+  async getAllBookings(): Promise<Booking[]> {
+    return await db.select().from(bookings);
   }
 
   async getServiceExtras(serviceType: string): Promise<ServiceExtra[]> {

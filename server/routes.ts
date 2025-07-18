@@ -1,9 +1,51 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBookingSchema } from "@shared/schema";
+import { insertBookingSchema, type Booking } from "@shared/schema";
 import { z } from "zod";
 import { sendCustomerConfirmationEmail, sendOwnerNotificationEmail } from "./email-service";
+
+// Calendar conflict detection utility
+function detectCalendarConflicts(bookings: Booking[]) {
+  const conflicts: { booking1: Booking; booking2: Booking; overlapMinutes: number }[] = [];
+  
+  const parseTimeToMinutes = (timeStr: string): number => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+  
+  for (let i = 0; i < bookings.length; i++) {
+    for (let j = i + 1; j < bookings.length; j++) {
+      const booking1 = bookings[i];
+      const booking2 = bookings[j];
+      
+      // Only check bookings on the same date
+      if (booking1.bookingDate === booking2.bookingDate) {
+        const time1 = parseTimeToMinutes(booking1.bookingTime);
+        const time2 = parseTimeToMinutes(booking2.bookingTime);
+        const duration1 = booking1.duration * 60; // Convert hours to minutes
+        const duration2 = booking2.duration * 60;
+        
+        // Check for overlap
+        const end1 = time1 + duration1;
+        const end2 = time2 + duration2;
+        
+        const overlapStart = Math.max(time1, time2);
+        const overlapEnd = Math.min(end1, end2);
+        
+        if (overlapStart < overlapEnd) {
+          conflicts.push({
+            booking1,
+            booking2,
+            overlapMinutes: overlapEnd - overlapStart
+          });
+        }
+      }
+    }
+  }
+  
+  return conflicts;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get service extras by service type
@@ -58,6 +100,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(booking);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch booking" });
+    }
+  });
+
+  // Admin endpoints
+  app.get("/api/admin/bookings", async (req, res) => {
+    try {
+      const bookings = await storage.getAllBookings();
+      res.json(bookings);
+    } catch (error) {
+      console.error('Admin bookings fetch error:', error);
+      res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
+  app.get("/api/admin/conflicts", async (req, res) => {
+    try {
+      const bookings = await storage.getAllBookings();
+      const conflicts = detectCalendarConflicts(bookings);
+      res.json(conflicts);
+    } catch (error) {
+      console.error('Admin conflicts fetch error:', error);
+      res.status(500).json({ message: "Failed to detect conflicts" });
     }
   });
 
