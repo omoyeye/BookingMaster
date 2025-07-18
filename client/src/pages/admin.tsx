@@ -298,9 +298,16 @@ const AdminDashboard = () => {
                   <p className="text-sm text-gray-600">Today's Bookings</p>
                   <p className="text-2xl font-bold">
                     {bookings.filter(b => {
-                      const today = new Date();
-                      const bookingDate = new Date(b.bookingDate);
-                      return bookingDate.toDateString() === today.toDateString();
+                      try {
+                        const today = new Date();
+                        const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+                        // Handle both date formats: YYYY-MM-DD and full ISO string
+                        const bookingDateStr = b.bookingDate.split('T')[0]; // Extract date part only
+                        return bookingDateStr === todayStr;
+                      } catch (error) {
+                        console.error('Date comparison error:', error);
+                        return false;
+                      }
                     }).length}
                   </p>
                 </div>

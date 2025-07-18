@@ -85,6 +85,6 @@ export const verifyAdminToken = async (req: Request, res: Response, next: NextFu
     next();
   } catch (error) {
     console.error('Admin token verification error:', error);
-    res.status(500).json({ error: 'Authentication failed' });
+    res.status(401).json({ error: 'Authentication failed' });
   }
 };
