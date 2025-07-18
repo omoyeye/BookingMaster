@@ -219,6 +219,89 @@ export async function sendOwnerNotificationEmail(booking: Booking): Promise<bool
   }
 }
 
+export async function sendReminderEmail(booking: Booking, customMessage: string): Promise<boolean> {
+  try {
+    const mailOptions = {
+      from: '"URINAKCLEANING" <info@urinakcleaning.co.uk>',
+      to: booking.email,
+      subject: `Reminder: Your Cleaning Service Tomorrow - Booking #${booking.id}`,
+      html: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <div style="background-color: #f59e0b; padding: 20px; text-align: center;">
+            <h1 style="color: white; margin: 0;">BOOKING REMINDER</h1>
+            <p style="margin: 5px 0; color: #fef3c7;">URINAKCLEANING</p>
+            <p style="margin: 5px 0; color: #fef3c7;">Professional Cleaning Services</p>
+          </div>
+          
+          <div style="padding: 30px 20px;">
+            <h2 style="color: #1f2937; margin-bottom: 20px;">Your cleaning service is scheduled for tomorrow!</h2>
+            
+            <p>Dear ${booking.fullName},</p>
+            
+            <p>This is a friendly reminder that your cleaning service is scheduled for tomorrow. Here are your booking details:</p>
+            
+            <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+              <h3 style="color: #92400e; margin-top: 0;">Booking Information</h3>
+              <p><strong>Booking ID:</strong> #${booking.id}</p>
+              <p><strong>Service Type:</strong> ${booking.serviceType.charAt(0).toUpperCase() + booking.serviceType.slice(1)} Cleaning</p>
+              <p><strong>Date:</strong> ${booking.bookingDate}</p>
+              <p><strong>Time:</strong> ${booking.bookingTime}</p>
+              <p><strong>Duration:</strong> ${booking.duration} hours</p>
+              <p><strong>Address:</strong><br>
+                ${booking.address1}<br>
+                ${booking.address2 ? booking.address2 + '<br>' : ''}
+                ${booking.city}, ${booking.postcode}
+              </p>
+            </div>
+            
+            ${customMessage ? `
+            <div style="background-color: #e0f2fe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0ea5e9;">
+              <h3 style="color: #0369a1; margin-top: 0;">Special Message</h3>
+              <p style="white-space: pre-wrap;">${customMessage}</p>
+            </div>
+            ` : ''}
+            
+            <div style="background-color: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
+              <h3 style="color: #1e40af; margin-top: 0;">Preparation Tips</h3>
+              <ul style="margin: 0; padding-left: 20px;">
+                <li>Please ensure someone is available to provide access to the property</li>
+                <li>Clear any valuable or fragile items from areas to be cleaned</li>
+                <li>Secure any pets in a safe area</li>
+                <li>If you have any specific requirements, please let us know</li>
+              </ul>
+            </div>
+            
+            <div style="margin-top: 30px;">
+              <h3 style="color: #374151;">Contact Information</h3>
+              <p>If you need to make any changes or have questions, please contact us immediately:</p>
+              <p><strong>Phone:</strong> +44-7786687791</p>
+              <p><strong>Email:</strong> info@urinakcleaning.co.uk</p>
+              <p><strong>Business Hours:</strong> Monday - Sunday, 8:00 AM - 6:00 PM</p>
+            </div>
+            
+            <p style="margin-top: 30px;">We look forward to providing you with excellent cleaning service!</p>
+            
+            <p>Best regards,<br>
+            The URINAKCLEANING Team</p>
+          </div>
+          
+          <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">
+              This is an automated reminder email. Please do not reply to this email.
+            </p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('Error sending reminder email:', error);
+    return false;
+  }
+}
+
 export async function testEmailConnection(): Promise<boolean> {
   try {
     await transporter.verify();

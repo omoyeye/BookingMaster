@@ -1,25 +1,117 @@
 import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, User, Mail, Phone, MapPin, AlertTriangle, Check, X } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { Calendar, Clock, User, Mail, Phone, MapPin, AlertTriangle, Check, X, Bell, Send, Plus, LogOut } from 'lucide-react';
 import { format, parseISO, isSameDay, differenceInMinutes } from 'date-fns';
-import type { Booking } from '@shared/schema';
+import { apiRequest } from '@/lib/queryClient';
+import type { Booking, CustomerReminder } from '@shared/schema';
+import { useLocation } from 'wouter';
 
 const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterService, setFilterService] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [reminderMessage, setReminderMessage] = useState('');
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Check admin authentication
+  const adminSession = localStorage.getItem('adminSession');
+  if (!adminSession) {
+    navigate('/admin/login');
+    return null;
+  }
+
+  const admin = JSON.parse(adminSession);
 
   // Utility function to parse time to minutes
   const parseTimeToMinutes = (timeStr: string): number => {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
+  };
+
+  // Fetch reminders
+  const { data: reminders = [] } = useQuery<CustomerReminder[]>({
+    queryKey: ['/api/admin/reminders'],
+    refetchInterval: 30000,
+  });
+
+  // Create reminder mutation
+  const createReminderMutation = useMutation({
+    mutationFn: async (reminderData: { bookingId: number; message: string }) => {
+      return await apiRequest('/api/admin/reminders', {
+        method: 'POST',
+        headers: { 'X-Admin-Id': admin.id.toString() },
+        body: reminderData,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Reminder Created",
+        description: "Customer reminder has been scheduled successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/reminders'] });
+      setSelectedBooking(null);
+      setReminderMessage('');
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create reminder. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Auto-create reminders mutation
+  const autoCreateRemindersMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/admin/reminders/auto-create', {
+        method: 'POST',
+        headers: { 'X-Admin-Id': admin.id.toString() },
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Auto-Reminders Created",
+        description: `Created ${data.createdCount} automatic reminders for future bookings.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/reminders'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create automatic reminders.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Logout function
+  const handleLogout = () => {
+    localStorage.removeItem('adminSession');
+    navigate('/admin/login');
+  };
+
+  // Handle reminder creation
+  const handleCreateReminder = () => {
+    if (selectedBooking && reminderMessage.trim()) {
+      createReminderMutation.mutate({
+        bookingId: selectedBooking.id,
+        message: reminderMessage.trim(),
+      });
+    }
   };
 
   // Fetch all bookings
@@ -145,9 +237,27 @@ const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <div className="text-sm text-gray-600">
-            Last updated: {format(new Date(), 'PPp')}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p className="text-sm text-gray-600">Welcome back, {admin.username}</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Button
+              onClick={() => autoCreateRemindersMutation.mutate()}
+              disabled={autoCreateRemindersMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              Auto-Create Reminders
+            </Button>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="border-red-200 text-red-600 hover:bg-red-50"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
           </div>
         </div>
 
@@ -246,6 +356,116 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Customer Reminders Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Bell className="w-5 h-5 mr-2 text-blue-600" />
+              Customer Reminders
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">
+                    Active Reminders: {reminders.filter(r => r.status === 'pending').length}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Sent Today: {reminders.filter(r => r.status === 'sent' && r.sentAt && new Date(r.sentAt).toDateString() === new Date().toDateString()).length}
+                  </p>
+                </div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Manual Reminder
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Create Customer Reminder</DialogTitle>
+                      <DialogDescription>
+                        Send a custom reminder to a customer about their upcoming booking.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Select Booking</Label>
+                        <Select onValueChange={(value) => {
+                          const booking = bookings.find(b => b.id === parseInt(value));
+                          setSelectedBooking(booking || null);
+                        }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a booking" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {bookings.filter(b => new Date(b.bookingDate) >= new Date()).map(booking => (
+                              <SelectItem key={booking.id} value={booking.id.toString()}>
+                                #{booking.id} - {booking.fullName} - {booking.bookingDate}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label>Custom Message</Label>
+                        <Textarea
+                          placeholder="Enter a custom message for the reminder..."
+                          value={reminderMessage}
+                          onChange={(e) => setReminderMessage(e.target.value)}
+                          rows={3}
+                        />
+                      </div>
+                      
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          onClick={handleCreateReminder}
+                          disabled={!selectedBooking || !reminderMessage.trim() || createReminderMutation.isPending}
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          {createReminderMutation.isPending ? 'Creating...' : 'Create Reminder'}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              
+              {reminders.length > 0 && (
+                <div className="max-h-60 overflow-y-auto">
+                  <div className="space-y-2">
+                    {reminders.slice(0, 5).map((reminder) => (
+                      <div key={reminder.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">
+                            Booking #{reminder.bookingId} - {reminder.message?.substring(0, 50)}...
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {reminder.status === 'pending' ? 'Scheduled' : 'Sent'} - {format(new Date(reminder.createdAt), 'PPp')}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {reminder.status === 'pending' && (
+                            <Badge variant="secondary">Pending</Badge>
+                          )}
+                          {reminder.status === 'sent' && (
+                            <Badge className="bg-green-100 text-green-800">Sent</Badge>
+                          )}
+                          {reminder.status === 'failed' && (
+                            <Badge variant="destructive">Failed</Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Filters */}
         <Card>
@@ -405,6 +625,21 @@ const AdminDashboard = () => {
                             <strong>Quote Request:</strong> {booking.quoteRequest}
                           </div>
                         )}
+                        
+                        <div className="mt-3 pt-3 border-t">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedBooking(booking);
+                              setReminderMessage('We wanted to remind you that your cleaning service is scheduled for tomorrow. Please ensure someone is available to provide access to the property.');
+                            }}
+                            className="w-full"
+                          >
+                            <Bell className="w-4 h-4 mr-2" />
+                            Create Reminder
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
