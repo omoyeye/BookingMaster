@@ -176,8 +176,8 @@ export default function BookingFormWizard({ onPricingChange, onExtrasChange, onF
       { id: 9, name: 'review', title: 'Review & Submit' }
     ];
     
-    // For commercial and jet washing services, skip some steps
-    if (serviceType === 'commercial' || serviceType === 'jet') {
+    // For commercial, jet washing, and airbnb services, skip some steps
+    if (serviceType === 'commercial' || serviceType === 'jet' || serviceType === 'airbnb') {
       return baseSteps.filter(step => step.name !== 'extras' && step.name !== 'tip');
     }
     
@@ -186,6 +186,12 @@ export default function BookingFormWizard({ onPricingChange, onExtrasChange, onF
 
   const steps = getStepStructure(formData.serviceType);
   const totalSteps = steps.length;
+  
+  // Debug logging for step progression
+  console.log('Service type:', formData.serviceType);
+  console.log('Current step:', currentStep);
+  console.log('Total steps:', totalSteps);
+  console.log('Steps:', steps.map(s => s.name));
 
   const nextStep = () => {
     if (currentStep < totalSteps) {
@@ -640,10 +646,73 @@ export default function BookingFormWizard({ onPricingChange, onExtrasChange, onF
               </div>
             )}
             
-            {/* Other service types */}
-            {!['general', 'deep', 'tenancy'].includes(formData.serviceType) && (
-              <div>
-                <p className="text-sm text-gray-600 mb-4">Property details for {SERVICE_DATA[formData.serviceType as keyof typeof SERVICE_DATA]?.name}</p>
+            {/* AirBnB Service - Bedroom Selection */}
+            {formData.serviceType === 'airbnb' && (
+              <div className="space-y-6">
+                <div>
+                  <Label htmlFor="bedrooms">Number of Bedrooms</Label>
+                  <Select value={formData.bedrooms?.toString() || "1"} onValueChange={(value) => {
+                    const bedrooms = parseInt(value);
+                    const duration = bedrooms === 1 ? 2 : bedrooms === 2 ? 3 : bedrooms === 3 ? 4 : bedrooms === 4 ? 4.5 : 5;
+                    const newFormData = { ...formData, bedrooms, duration };
+                    setFormData(newFormData);
+                    updateState(newFormData, selectedExtras);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select bedrooms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 bedroom (2 hours)</SelectItem>
+                      <SelectItem value="2">2 bedrooms (3 hours)</SelectItem>
+                      <SelectItem value="3">3 bedrooms (4 hours)</SelectItem>
+                      <SelectItem value="4">4 bedrooms (4.5 hours)</SelectItem>
+                      <SelectItem value="5">5 bedrooms (5 hours)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <NavigationButtons />
+              </div>
+            )}
+            
+            {/* Jet Washing Service - Surface Details */}
+            {formData.serviceType === 'jet' && (
+              <div className="space-y-6">
+                <div>
+                  <Label htmlFor="specialInstructions">Surface Details & Requirements</Label>
+                  <Textarea 
+                    value={formData.specialInstructions || ''}
+                    onChange={(e) => {
+                      const newFormData = { ...formData, specialInstructions: e.target.value };
+                      setFormData(newFormData);
+                      updateState(newFormData, selectedExtras);
+                    }}
+                    placeholder="Please describe the surfaces to be cleaned (driveway, patio, deck, etc.) and any specific requirements..."
+                    className="min-h-[120px]"
+                  />
+                </div>
+                
+                <NavigationButtons />
+              </div>
+            )}
+            
+            {/* Commercial Service - Property Details */}
+            {formData.serviceType === 'commercial' && (
+              <div className="space-y-6">
+                <div>
+                  <Label htmlFor="specialInstructions">Commercial Property Details</Label>
+                  <Textarea 
+                    value={formData.specialInstructions || ''}
+                    onChange={(e) => {
+                      const newFormData = { ...formData, specialInstructions: e.target.value };
+                      setFormData(newFormData);
+                      updateState(newFormData, selectedExtras);
+                    }}
+                    placeholder="Please describe your commercial property (office space, retail store, etc.) and cleaning requirements..."
+                    className="min-h-[120px]"
+                  />
+                </div>
+                
                 <NavigationButtons />
               </div>
             )}
@@ -651,8 +720,8 @@ export default function BookingFormWizard({ onPricingChange, onExtrasChange, onF
         </Card>
       )}
 
-      {/* Step 3: Additional Services */}
-      {currentStep === 3 && (
+      {/* Step 3: Additional Services - Only show if extras step exists */}
+      {currentStep === 3 && steps.some(step => step.name === 'extras') && (
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle className="text-primary flex items-center">
@@ -918,8 +987,8 @@ export default function BookingFormWizard({ onPricingChange, onExtrasChange, onF
         </Card>
       )}
 
-      {/* Step 8: Tip Selection */}
-      {currentStep === 8 && (
+      {/* Step 8: Tip Selection - Only show if tip step exists */}
+      {currentStep === 8 && steps.some(step => step.name === 'tip') && (
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle className="text-primary flex items-center">

@@ -17,11 +17,19 @@ const AdminLogin = () => {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
-      const response = await apiRequest('/api/admin/login', {
+      const response = await fetch('/api/admin/login', {
         method: 'POST',
-        body: credentials,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
       });
-      return response;
+      
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+      
+      return response.json();
     },
     onSuccess: (data) => {
       // Store admin session
