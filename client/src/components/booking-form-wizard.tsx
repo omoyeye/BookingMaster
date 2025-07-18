@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, Clock, MapPin, User, Mail, Phone, CreditCard, PlusCircle, Home, Waves, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, Mail, Phone, CreditCard, PlusCircle, Home, Waves, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
@@ -178,7 +178,9 @@ export default function BookingFormWizard({ onPricingChange, onExtrasChange, onF
     
     // For commercial, jet washing, and airbnb services, skip some steps
     if (serviceType === 'commercial' || serviceType === 'jet' || serviceType === 'airbnb') {
-      return baseSteps.filter(step => step.name !== 'extras' && step.name !== 'tip');
+      return baseSteps
+        .filter(step => step.name !== 'extras' && step.name !== 'tip')
+        .map((step, index) => ({ ...step, id: index + 1 })); // Reindex IDs
     }
     
     return baseSteps;
@@ -186,10 +188,12 @@ export default function BookingFormWizard({ onPricingChange, onExtrasChange, onF
 
   const steps = getStepStructure(formData.serviceType);
   const totalSteps = steps.length;
+  const currentStepName = steps[currentStep - 1]?.name;
   
   // Debug logging for step progression
   console.log('Service type:', formData.serviceType);
   console.log('Current step:', currentStep);
+  console.log('Current step name:', currentStepName);
   console.log('Total steps:', totalSteps);
   console.log('Steps:', steps.map(s => s.name));
 
@@ -350,745 +354,752 @@ export default function BookingFormWizard({ onPricingChange, onExtrasChange, onF
     <form onSubmit={handleSubmit} className="space-y-6">
       <StepIndicator />
       
-      {/* Step 1: Service Type Selection */}
-      {currentStep === 1 && (
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center">
-              {renderSectionNumber(1)}
-              <Home className="h-5 w-5 mr-2" />
-              Service Type
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="serviceType">Type of Service</Label>
-                <Select value={formData.serviceType} onValueChange={handleServiceTypeChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select service type..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(SERVICE_DATA).map(([key, service]) => (
-                      <SelectItem key={key} value={key}>
-                        {service.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="frequency">Frequency</Label>
-                <Select value={formData.frequency} onValueChange={(value) => {
-                  const newFormData = { ...formData, frequency: value };
-                  setFormData(newFormData);
-                  updateState(newFormData, selectedExtras);
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select frequency..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FREQUENCY_OPTIONS.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <NavigationButtons canProceed={!!formData.serviceType} />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 2: Property Details */}
-      {currentStep === 2 && (
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center">
-              {renderSectionNumber(2)}
-              <Home className="h-5 w-5 mr-2" />
-              {formData.serviceType === 'general' ? 'Select Time Duration' : 'Property Details'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* General/Standard Cleaning - Simple Duration Selection */}
-            {formData.serviceType === 'general' && (
-              <div className="space-y-6">
-                <div>
-                  <Label htmlFor="duration" className="text-lg font-medium">Select Time Duration</Label>
-                  <div className="grid grid-cols-2 gap-4 mt-4">
+      {/* Dynamic Step Rendering */}
+      {steps.map((step, index) => {
+        const stepNumber = index + 1;
+        const stepName = step.name;
+        
+        if (currentStep !== stepNumber) return null;
+        
+        switch (stepName) {
+          case 'service':
+            return (
+              <Card key={stepNumber} className="shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-primary flex items-center">
+                    {renderSectionNumber(stepNumber)}
+                    <Settings className="h-5 w-5 mr-2" />
+                    Service Selection
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm text-muted-foreground">Hours</Label>
-                      <Select value={Math.floor(formData.duration || 2).toString()} onValueChange={(value) => {
-                        const hours = parseInt(value);
-                        const minutes = (formData.duration || 2) % 1 === 0.5 ? 30 : 0;
-                        const newFormData = { ...formData, duration: hours + (minutes / 60) };
-                        setFormData(newFormData);
-                        updateState(newFormData, selectedExtras);
-                      }}>
+                      <Label htmlFor="serviceType">Type of Service</Label>
+                      <Select value={formData.serviceType} onValueChange={handleServiceTypeChange}>
                         <SelectTrigger>
-                          <SelectValue placeholder="02" />
+                          <SelectValue placeholder="Select service type..." />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="2">02</SelectItem>
-                          <SelectItem value="3">03</SelectItem>
-                          <SelectItem value="4">04</SelectItem>
-                          <SelectItem value="5">05</SelectItem>
-                          <SelectItem value="6">06</SelectItem>
-                          <SelectItem value="7">07</SelectItem>
-                          <SelectItem value="8">08</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="text-sm text-muted-foreground">Minutes</Label>
-                      <Select value={((formData.duration || 2) % 1 === 0.5 ? 30 : 0).toString()} onValueChange={(value) => {
-                        const hours = Math.floor(formData.duration || 2);
-                        const minutes = parseInt(value);
-                        const newFormData = { ...formData, duration: hours + (minutes / 60) };
-                        setFormData(newFormData);
-                        updateState(newFormData, selectedExtras);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="00" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="0">00</SelectItem>
-                          <SelectItem value="30">30</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="notifyMoreTime" 
-                    checked={formData.notifyMoreTime || false}
-                    onCheckedChange={(checked) => {
-                      const newFormData = { ...formData, notifyMoreTime: checked };
-                      setFormData(newFormData);
-                      updateState(newFormData, selectedExtras);
-                    }}
-                  />
-                  <Label htmlFor="notifyMoreTime" className="text-sm">
-                    Notify me if the job requires more time.
-                  </Label>
-                </div>
-                
-                <NavigationButtons />
-              </div>
-            )}
-            
-            {/* Deep Cleaning and End of Tenancy - Detailed Room Selection */}
-            {(formData.serviceType === 'deep' || formData.serviceType === 'tenancy') && (
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  {/* Left Column */}
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="bedrooms">Bedrooms</Label>
-                      <Select value={formData.bedrooms?.toString() || "0"} onValueChange={(value) => {
-                        const newFormData = { ...formData, bedrooms: parseInt(value) };
-                        setFormData(newFormData);
-                        updateState(newFormData, selectedExtras);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="0" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
-                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                          {Object.entries(SERVICE_DATA).map(([key, service]) => (
+                            <SelectItem key={key} value={key}>
+                              {service.name}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                     
                     <div>
-                      <Label htmlFor="bathrooms">Bathrooms</Label>
-                      <Select value={formData.bathrooms?.toString() || "0"} onValueChange={(value) => {
-                        const newFormData = { ...formData, bathrooms: parseInt(value) };
+                      <Label htmlFor="frequency">Frequency</Label>
+                      <Select value={formData.frequency} onValueChange={(value) => {
+                        const newFormData = { ...formData, frequency: value };
                         setFormData(newFormData);
                         updateState(newFormData, selectedExtras);
                       }}>
                         <SelectTrigger>
-                          <SelectValue placeholder="0" />
+                          <SelectValue placeholder="Select frequency..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
-                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="kitchen">Kitchen</Label>
-                      <Select value={formData.kitchen?.toString() || "1"} onValueChange={(value) => {
-                        const newFormData = { ...formData, kitchen: parseInt(value) };
-                        setFormData(newFormData);
-                        updateState(newFormData, selectedExtras);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="1" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[0,1,2,3,4,5].map(num => (
-                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="carpetCleaning">Carpet Cleaning</Label>
-                      <Select value={formData.carpetCleaning?.toString() || "0"} onValueChange={(value) => {
-                        const newFormData = { ...formData, carpetCleaning: parseInt(value) };
-                        setFormData(newFormData);
-                        updateState(newFormData, selectedExtras);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="0" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
-                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                          {FREQUENCY_OPTIONS.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                   
-                  {/* Right Column */}
+                  <NavigationButtons canProceed={!!formData.serviceType} />
+                </CardContent>
+              </Card>
+            );
+            
+          case 'property':
+            return (
+              <Card key={stepNumber} className="shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-primary flex items-center">
+                    {renderSectionNumber(stepNumber)}
+                    <Home className="h-5 w-5 mr-2" />
+                    {formData.serviceType === 'general' ? 'Select Time Duration' : 'Property Details'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* General/Standard Cleaning - Simple Duration Selection */}
+                  {formData.serviceType === 'general' && (
+                    <div className="space-y-6">
+                      <div>
+                        <Label>Duration</Label>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <div className="flex items-center space-x-1">
+                            <Select value={Math.floor(formData.duration || 2).toString()} onValueChange={(value) => {
+                              const hours = parseInt(value);
+                              const minutes = (formData.duration || 2) % 1 * 60;
+                              const newFormData = { ...formData, duration: hours + (minutes / 60) };
+                              setFormData(newFormData);
+                              updateState(newFormData, selectedExtras);
+                            }}>
+                              <SelectTrigger className="w-16">
+                                <SelectValue placeholder="2" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[2,3,4,5,6,7,8].map(hour => (
+                                  <SelectItem key={hour} value={hour.toString()}>{hour}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <span className="text-sm">hours</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Select value={((formData.duration || 2) % 1 * 60).toString()} onValueChange={(value) => {
+                              const hours = Math.floor(formData.duration || 2);
+                              const minutes = parseInt(value);
+                              const newFormData = { ...formData, duration: hours + (minutes / 60) };
+                              setFormData(newFormData);
+                              updateState(newFormData, selectedExtras);
+                            }}>
+                              <SelectTrigger className="w-16">
+                                <SelectValue placeholder="00" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="0">00</SelectItem>
+                                <SelectItem value="30">30</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <span className="text-sm">minutes</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="notifyMoreTime" 
+                          checked={formData.notifyMoreTime || false}
+                          onCheckedChange={(checked) => {
+                            const newFormData = { ...formData, notifyMoreTime: checked };
+                            setFormData(newFormData);
+                            updateState(newFormData, selectedExtras);
+                          }}
+                        />
+                        <Label htmlFor="notifyMoreTime" className="text-sm">
+                          Notify me if the job requires more time.
+                        </Label>
+                      </div>
+                      
+                      <NavigationButtons />
+                    </div>
+                  )}
+                  
+                  {/* Deep Cleaning and End of Tenancy - Detailed Room Selection */}
+                  {(formData.serviceType === 'deep' || formData.serviceType === 'tenancy') && (
+                    <div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        {/* Left Column */}
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="bedrooms">Bedrooms</Label>
+                            <Select value={formData.bedrooms?.toString() || "0"} onValueChange={(value) => {
+                              const newFormData = { ...formData, bedrooms: parseInt(value) };
+                              setFormData(newFormData);
+                              updateState(newFormData, selectedExtras);
+                            }}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="0" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                                  <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="bathrooms">Bathrooms</Label>
+                            <Select value={formData.bathrooms?.toString() || "0"} onValueChange={(value) => {
+                              const newFormData = { ...formData, bathrooms: parseInt(value) };
+                              setFormData(newFormData);
+                              updateState(newFormData, selectedExtras);
+                            }}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="0" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                                  <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="toilets">Toilets</Label>
+                            <Select value={formData.toilets?.toString() || "0"} onValueChange={(value) => {
+                              const newFormData = { ...formData, toilets: parseInt(value) };
+                              setFormData(newFormData);
+                              updateState(newFormData, selectedExtras);
+                            }}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="0" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                                  <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="kitchen">Kitchen</Label>
+                            <Select value={formData.kitchen?.toString() || "0"} onValueChange={(value) => {
+                              const newFormData = { ...formData, kitchen: parseInt(value) };
+                              setFormData(newFormData);
+                              updateState(newFormData, selectedExtras);
+                            }}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="0" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[0,1,2,3,4,5].map(num => (
+                                  <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="carpetCleaning">Carpet Cleaning</Label>
+                            <Select value={formData.carpetCleaning?.toString() || "0"} onValueChange={(value) => {
+                              const newFormData = { ...formData, carpetCleaning: parseInt(value) };
+                              setFormData(newFormData);
+                              updateState(newFormData, selectedExtras);
+                            }}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="0" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                                  <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        {/* Right Column */}
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="livingRooms">Reception Room</Label>
+                            <Select value={formData.livingRooms?.toString() || "0"} onValueChange={(value) => {
+                              const newFormData = { ...formData, livingRooms: parseInt(value) };
+                              setFormData(newFormData);
+                              updateState(newFormData, selectedExtras);
+                            }}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="0" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                                  <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="utilityRoom">Utility Room</Label>
+                            <Select value={formData.utilityRoom?.toString() || "0"} onValueChange={(value) => {
+                              const newFormData = { ...formData, utilityRoom: parseInt(value) };
+                              setFormData(newFormData);
+                              updateState(newFormData, selectedExtras);
+                            }}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="0" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[0,1,2,3,4,5].map(num => (
+                                  <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="sqFt">Square Footage</Label>
+                            <Select value={formData.squareFootage?.toString() || "1200"} onValueChange={(value) => {
+                              const newFormData = { ...formData, squareFootage: parseInt(value.split('-')[0]) };
+                              setFormData(newFormData);
+                              updateState(newFormData, selectedExtras);
+                            }}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="1 - 1200 Sq Ft" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1-1200">1 - 1200 Sq Ft</SelectItem>
+                                <SelectItem value="1201-2000">1201 - 2000 Sq Ft</SelectItem>
+                                <SelectItem value="2001-3000">2001 - 3000 Sq Ft</SelectItem>
+                                <SelectItem value="3001-4000">3001 - 4000 Sq Ft</SelectItem>
+                                <SelectItem value="4001-5000">4001 - 5000 Sq Ft</SelectItem>
+                                <SelectItem value="5001+">5001+ Sq Ft</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <NavigationButtons />
+                    </div>
+                  )}
+                  
+                  {/* AirBnB Service - Bedroom Selection */}
+                  {formData.serviceType === 'airbnb' && (
+                    <div className="space-y-6">
+                      <div>
+                        <Label htmlFor="bedrooms">Number of Bedrooms</Label>
+                        <Select value={formData.bedrooms?.toString() || "1"} onValueChange={(value) => {
+                          const bedrooms = parseInt(value);
+                          const duration = bedrooms === 1 ? 2 : bedrooms === 2 ? 3 : bedrooms === 3 ? 4 : bedrooms === 4 ? 4.5 : 5;
+                          const newFormData = { ...formData, bedrooms, duration };
+                          setFormData(newFormData);
+                          updateState(newFormData, selectedExtras);
+                        }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select bedrooms" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1 bedroom (2 hours)</SelectItem>
+                            <SelectItem value="2">2 bedrooms (3 hours)</SelectItem>
+                            <SelectItem value="3">3 bedrooms (4 hours)</SelectItem>
+                            <SelectItem value="4">4 bedrooms (4.5 hours)</SelectItem>
+                            <SelectItem value="5">5 bedrooms (5 hours)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <NavigationButtons />
+                    </div>
+                  )}
+                  
+                  {/* Jet Washing Service - Surface Details */}
+                  {formData.serviceType === 'jet' && (
+                    <div className="space-y-6">
+                      <div>
+                        <Label htmlFor="specialInstructions">Surface Details & Requirements</Label>
+                        <Textarea 
+                          value={formData.specialInstructions || ''}
+                          onChange={(e) => {
+                            const newFormData = { ...formData, specialInstructions: e.target.value };
+                            setFormData(newFormData);
+                            updateState(newFormData, selectedExtras);
+                          }}
+                          placeholder="Please describe the surfaces to be cleaned (driveway, patio, deck, etc.) and any specific requirements..."
+                          className="min-h-[120px]"
+                        />
+                      </div>
+                      
+                      <NavigationButtons />
+                    </div>
+                  )}
+                  
+                  {/* Commercial Service - Property Details */}
+                  {formData.serviceType === 'commercial' && (
+                    <div className="space-y-6">
+                      <div>
+                        <Label htmlFor="specialInstructions">Commercial Property Details</Label>
+                        <Textarea 
+                          value={formData.specialInstructions || ''}
+                          onChange={(e) => {
+                            const newFormData = { ...formData, specialInstructions: e.target.value };
+                            setFormData(newFormData);
+                            updateState(newFormData, selectedExtras);
+                          }}
+                          placeholder="Please describe your commercial property (office space, retail store, etc.) and cleaning requirements..."
+                          className="min-h-[120px]"
+                        />
+                      </div>
+                      
+                      <NavigationButtons />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+            
+          case 'extras':
+            return (
+              <Card key={stepNumber} className="shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-primary flex items-center">
+                    {renderSectionNumber(stepNumber)}
+                    <PlusCircle className="h-5 w-5 mr-2" />
+                    Additional Services
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {serviceExtras.map((extra: any) => (
+                      <div key={extra.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <h4 className="font-medium">{extra.name}</h4>
+                          <p className="text-sm text-gray-600">£{extra.price}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleExtraQuantityChange(extra, Math.max(0, (extrasQuantities[extra.id] || 0) - 1))}
+                          >
+                            -
+                          </Button>
+                          <span className="w-8 text-center">{extrasQuantities[extra.id] || 0}</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleExtraQuantityChange(extra, (extrasQuantities[extra.id] || 0) + 1)}
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <NavigationButtons />
+                </CardContent>
+              </Card>
+            );
+            
+          case 'datetime':
+            return (
+              <Card key={stepNumber} className="shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-primary flex items-center">
+                    {renderSectionNumber(stepNumber)}
+                    <Calendar className="h-5 w-5 mr-2" />
+                    Date & Time
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="toilets">Cloakroom Toilets</Label>
-                      <Select value={formData.toilets?.toString() || "0"} onValueChange={(value) => {
-                        const newFormData = { ...formData, toilets: parseInt(value) };
-                        setFormData(newFormData);
-                        updateState(newFormData, selectedExtras);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="0" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
-                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Label htmlFor="bookingDate">Booking Date</Label>
+                      <Input 
+                        type="date" 
+                        value={formData.bookingDate}
+                        onChange={(e) => {
+                          const newFormData = { ...formData, bookingDate: e.target.value };
+                          setFormData(newFormData);
+                          updateState(newFormData, selectedExtras);
+                        }}
+                        min={new Date().toISOString().split('T')[0]}
+                      />
                     </div>
                     
                     <div>
-                      <Label htmlFor="livingRooms">Reception Room</Label>
-                      <Select value={formData.livingRooms?.toString() || "0"} onValueChange={(value) => {
-                        const newFormData = { ...formData, livingRooms: parseInt(value) };
-                        setFormData(newFormData);
-                        updateState(newFormData, selectedExtras);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="0" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
-                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Label>Preferred Time</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                        {TIME_SLOTS.map((time) => (
+                          <Button
+                            key={time}
+                            type="button"
+                            variant={selectedTimeSlot === time ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleTimeSlotSelect(time)}
+                            className="text-xs"
+                          >
+                            {time}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <NavigationButtons canProceed={!!(formData.bookingDate && selectedTimeSlot)} />
+                </CardContent>
+              </Card>
+            );
+            
+          case 'customer':
+            return (
+              <Card key={stepNumber} className="shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-primary flex items-center">
+                    {renderSectionNumber(stepNumber)}
+                    <User className="h-5 w-5 mr-2" />
+                    Customer Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="fullName">Full Name</Label>
+                      <Input 
+                        type="text" 
+                        value={formData.fullName}
+                        onChange={(e) => {
+                          const newFormData = { ...formData, fullName: e.target.value };
+                          setFormData(newFormData);
+                          updateState(newFormData, selectedExtras);
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input 
+                        type="email" 
+                        value={formData.email}
+                        onChange={(e) => {
+                          const newFormData = { ...formData, email: e.target.value };
+                          setFormData(newFormData);
+                          updateState(newFormData, selectedExtras);
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input 
+                        type="tel" 
+                        value={formData.phone}
+                        onChange={(e) => {
+                          const newFormData = { ...formData, phone: e.target.value };
+                          setFormData(newFormData);
+                          updateState(newFormData, selectedExtras);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <NavigationButtons canProceed={!!(formData.fullName && formData.email && formData.phone)} />
+                </CardContent>
+              </Card>
+            );
+            
+          case 'address':
+            return (
+              <Card key={stepNumber} className="shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-primary flex items-center">
+                    {renderSectionNumber(stepNumber)}
+                    <MapPin className="h-5 w-5 mr-2" />
+                    Address Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="address1">Address Line 1</Label>
+                      <Input 
+                        type="text" 
+                        value={formData.address1}
+                        onChange={(e) => {
+                          const newFormData = { ...formData, address1: e.target.value };
+                          setFormData(newFormData);
+                          updateState(newFormData, selectedExtras);
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="address2">Address Line 2 (Optional)</Label>
+                      <Input 
+                        type="text" 
+                        value={formData.address2}
+                        onChange={(e) => {
+                          const newFormData = { ...formData, address2: e.target.value };
+                          setFormData(newFormData);
+                          updateState(newFormData, selectedExtras);
+                        }}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="city">City</Label>
+                        <Input 
+                          type="text" 
+                          value={formData.city}
+                          onChange={(e) => {
+                            const newFormData = { ...formData, city: e.target.value };
+                            setFormData(newFormData);
+                            updateState(newFormData, selectedExtras);
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="postcode">Postcode</Label>
+                        <Input 
+                          type="text" 
+                          value={formData.postcode}
+                          onChange={(e) => {
+                            const newFormData = { ...formData, postcode: e.target.value };
+                            setFormData(newFormData);
+                            updateState(newFormData, selectedExtras);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <NavigationButtons canProceed={!!(formData.address1 && formData.city && formData.postcode)} />
+                </CardContent>
+              </Card>
+            );
+            
+          case 'additional':
+            return (
+              <Card key={stepNumber} className="shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-primary flex items-center">
+                    {renderSectionNumber(stepNumber)}
+                    Additional Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="specialInstructions">Special Instructions</Label>
+                      <Textarea 
+                        value={formData.specialInstructions}
+                        onChange={(e) => {
+                          const newFormData = { ...formData, specialInstructions: e.target.value };
+                          setFormData(newFormData);
+                          updateState(newFormData, selectedExtras);
+                        }}
+                        placeholder="Any special instructions or requirements..."
+                      />
                     </div>
                     
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="smsReminders" 
+                        checked={formData.smsReminders || false}
+                        onCheckedChange={(checked) => {
+                          const newFormData = { ...formData, smsReminders: checked };
+                          setFormData(newFormData);
+                          updateState(newFormData, selectedExtras);
+                        }}
+                      />
+                      <Label htmlFor="smsReminders" className="text-sm">
+                        Send me SMS reminders about my booking
+                      </Label>
+                    </div>
+                  </div>
+                  
+                  <NavigationButtons />
+                </CardContent>
+              </Card>
+            );
+            
+          case 'tip':
+            return (
+              <Card key={stepNumber} className="shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-primary flex items-center">
+                    {renderSectionNumber(stepNumber)}
+                    <CreditCard className="h-5 w-5 mr-2" />
+                    Tip Selection
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
                     <div>
-                      <Label htmlFor="utilityRoom">Utility Room</Label>
-                      <Select value={formData.utilityRoom?.toString() || "0"} onValueChange={(value) => {
-                        const newFormData = { ...formData, utilityRoom: parseInt(value) };
-                        setFormData(newFormData);
-                        updateState(newFormData, selectedExtras);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="0" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[0,1,2,3,4,5].map(num => (
-                            <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Label>Tip Amount</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                        {TIP_OPTIONS.map((tip) => (
+                          <Button
+                            key={tip.value}
+                            type="button"
+                            variant={formData.tipPercentage === tip.value ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              const newFormData = { ...formData, tipPercentage: tip.value };
+                              setFormData(newFormData);
+                              updateState(newFormData, selectedExtras);
+                            }}
+                            className="text-xs"
+                          >
+                            {tip.label}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
                     
-                    <div>
-                      <Label htmlFor="sqFt">Square Footage</Label>
-                      <Select value={formData.squareFootage?.toString() || "1200"} onValueChange={(value) => {
-                        const newFormData = { ...formData, squareFootage: parseInt(value.split('-')[0]) };
-                        setFormData(newFormData);
-                        updateState(newFormData, selectedExtras);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="1 - 1200 Sq Ft" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1-1200">1 - 1200 Sq Ft</SelectItem>
-                          <SelectItem value="1201-2000">1201 - 2000 Sq Ft</SelectItem>
-                          <SelectItem value="2001-3000">2001 - 3000 Sq Ft</SelectItem>
-                          <SelectItem value="3001-4000">3001 - 4000 Sq Ft</SelectItem>
-                          <SelectItem value="4001-5000">4001 - 5000 Sq Ft</SelectItem>
-                          <SelectItem value="5001+">5001+ Sq Ft</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    {formData.tipPercentage === -1 && (
+                      <div>
+                        <Label htmlFor="customTip">Custom Tip Amount (£)</Label>
+                        <Input 
+                          type="number" 
+                          value={formData.customTip}
+                          onChange={(e) => {
+                            const newFormData = { ...formData, customTip: e.target.value };
+                            setFormData(newFormData);
+                            updateState(newFormData, selectedExtras);
+                          }}
+                          placeholder="Enter custom tip amount"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <NavigationButtons />
+                </CardContent>
+              </Card>
+            );
+            
+          case 'review':
+            return (
+              <Card key={stepNumber} className="shadow-md">
+                <CardHeader>
+                  <CardTitle className="text-primary flex items-center">
+                    {renderSectionNumber(stepNumber)}
+                    Review & Submit
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-muted rounded-lg">
+                      <h4 className="font-medium mb-2">Booking Summary</h4>
+                      <div className="text-sm space-y-1">
+                        <p><strong>Service:</strong> {SERVICE_DATA[formData.serviceType as keyof typeof SERVICE_DATA]?.name}</p>
+                        <p><strong>Date:</strong> {formData.bookingDate}</p>
+                        <p><strong>Time:</strong> {selectedTimeSlot}</p>
+                        <p><strong>Duration:</strong> {formData.duration} hours</p>
+                        {selectedExtras.length > 0 && (
+                          <p><strong>Extras:</strong> {selectedExtras.map(e => `${e.name} (x${e.quantity || 1})`).join(', ')}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between pt-4 border-t">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={previousStep}
+                        className="flex items-center"
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-2" />
+                        Previous
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        className="flex items-center"
+                        disabled={createBookingMutation.isPending}
+                      >
+                        {createBookingMutation.isPending ? 'Creating Booking...' : 'Confirm Booking'}
+                      </Button>
                     </div>
                   </div>
-                </div>
-                
-                <NavigationButtons />
-              </div>
-            )}
+                </CardContent>
+              </Card>
+            );
             
-            {/* AirBnB Service - Bedroom Selection */}
-            {formData.serviceType === 'airbnb' && (
-              <div className="space-y-6">
-                <div>
-                  <Label htmlFor="bedrooms">Number of Bedrooms</Label>
-                  <Select value={formData.bedrooms?.toString() || "1"} onValueChange={(value) => {
-                    const bedrooms = parseInt(value);
-                    const duration = bedrooms === 1 ? 2 : bedrooms === 2 ? 3 : bedrooms === 3 ? 4 : bedrooms === 4 ? 4.5 : 5;
-                    const newFormData = { ...formData, bedrooms, duration };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select bedrooms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 bedroom (2 hours)</SelectItem>
-                      <SelectItem value="2">2 bedrooms (3 hours)</SelectItem>
-                      <SelectItem value="3">3 bedrooms (4 hours)</SelectItem>
-                      <SelectItem value="4">4 bedrooms (4.5 hours)</SelectItem>
-                      <SelectItem value="5">5 bedrooms (5 hours)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <NavigationButtons />
-              </div>
-            )}
-            
-            {/* Jet Washing Service - Surface Details */}
-            {formData.serviceType === 'jet' && (
-              <div className="space-y-6">
-                <div>
-                  <Label htmlFor="specialInstructions">Surface Details & Requirements</Label>
-                  <Textarea 
-                    value={formData.specialInstructions || ''}
-                    onChange={(e) => {
-                      const newFormData = { ...formData, specialInstructions: e.target.value };
-                      setFormData(newFormData);
-                      updateState(newFormData, selectedExtras);
-                    }}
-                    placeholder="Please describe the surfaces to be cleaned (driveway, patio, deck, etc.) and any specific requirements..."
-                    className="min-h-[120px]"
-                  />
-                </div>
-                
-                <NavigationButtons />
-              </div>
-            )}
-            
-            {/* Commercial Service - Property Details */}
-            {formData.serviceType === 'commercial' && (
-              <div className="space-y-6">
-                <div>
-                  <Label htmlFor="specialInstructions">Commercial Property Details</Label>
-                  <Textarea 
-                    value={formData.specialInstructions || ''}
-                    onChange={(e) => {
-                      const newFormData = { ...formData, specialInstructions: e.target.value };
-                      setFormData(newFormData);
-                      updateState(newFormData, selectedExtras);
-                    }}
-                    placeholder="Please describe your commercial property (office space, retail store, etc.) and cleaning requirements..."
-                    className="min-h-[120px]"
-                  />
-                </div>
-                
-                <NavigationButtons />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 3: Additional Services - Only show if extras step exists */}
-      {currentStep === 3 && steps.some(step => step.name === 'extras') && (
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center">
-              {renderSectionNumber(3)}
-              <PlusCircle className="h-5 w-5 mr-2" />
-              Additional Services
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {serviceExtras.map((extra: any) => (
-                <div key={extra.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{extra.name}</h4>
-                    <p className="text-sm text-gray-600">£{extra.price}</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleExtraQuantityChange(extra, Math.max(0, (extrasQuantities[extra.id] || 0) - 1))}
-                    >
-                      -
-                    </Button>
-                    <span className="w-8 text-center">{extrasQuantities[extra.id] || 0}</span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleExtraQuantityChange(extra, (extrasQuantities[extra.id] || 0) + 1)}
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <NavigationButtons />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 4: Date & Time */}
-      {currentStep === 4 && (
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center">
-              {renderSectionNumber(4)}
-              <Calendar className="h-5 w-5 mr-2" />
-              Date & Time
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <Label htmlFor="bookingDate">Preferred Date</Label>
-                <Input 
-                  type="date" 
-                  value={formData.bookingDate}
-                  min={new Date().toISOString().split('T')[0]}
-                  onChange={(e) => {
-                    const newFormData = { ...formData, bookingDate: e.target.value };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label>Available Time Slots</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                {TIME_SLOTS && Array.isArray(TIME_SLOTS) ? TIME_SLOTS.map((timeSlot: any) => (
-                  <Button
-                    key={timeSlot.value}
-                    type="button"
-                    variant={selectedTimeSlot === timeSlot.value ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleTimeSlotSelect(timeSlot.value)}
-                    className="text-xs"
-                  >
-                    {timeSlot.label}
-                  </Button>
-                )) : (
-                  <div className="text-sm text-muted-foreground">No time slots available</div>
-                )}
-              </div>
-            </div>
-            
-            <NavigationButtons canProceed={!!(formData.bookingDate && selectedTimeSlot)} />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 5: Customer Details */}
-      {currentStep === 5 && (
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center">
-              {renderSectionNumber(5)}
-              <User className="h-5 w-5 mr-2" />
-              Customer Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input 
-                  type="text" 
-                  value={formData.fullName}
-                  onChange={(e) => {
-                    const newFormData = { ...formData, fullName: e.target.value };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input 
-                  type="email" 
-                  value={formData.email}
-                  onChange={(e) => {
-                    const newFormData = { ...formData, email: e.target.value };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input 
-                  type="tel" 
-                  value={formData.phone}
-                  onChange={(e) => {
-                    const newFormData = { ...formData, phone: e.target.value };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}
-                />
-              </div>
-            </div>
-            
-            <NavigationButtons canProceed={!!(formData.fullName && formData.email && formData.phone)} />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 6: Address Details */}
-      {currentStep === 6 && (
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center">
-              {renderSectionNumber(6)}
-              <MapPin className="h-5 w-5 mr-2" />
-              Address Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="address1">Address Line 1</Label>
-                <Input 
-                  type="text" 
-                  value={formData.address1}
-                  onChange={(e) => {
-                    const newFormData = { ...formData, address1: e.target.value };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}
-                />
-              </div>
-              <div>
-                <Label htmlFor="address2">Address Line 2 (Optional)</Label>
-                <Input 
-                  type="text" 
-                  value={formData.address2}
-                  onChange={(e) => {
-                    const newFormData = { ...formData, address2: e.target.value };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="city">City</Label>
-                  <Input 
-                    type="text" 
-                    value={formData.city}
-                    onChange={(e) => {
-                      const newFormData = { ...formData, city: e.target.value };
-                      setFormData(newFormData);
-                      updateState(newFormData, selectedExtras);
-                    }}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="postcode">Postcode</Label>
-                  <Input 
-                    type="text" 
-                    value={formData.postcode}
-                    onChange={(e) => {
-                      const newFormData = { ...formData, postcode: e.target.value };
-                      setFormData(newFormData);
-                      updateState(newFormData, selectedExtras);
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <NavigationButtons canProceed={!!(formData.address1 && formData.city && formData.postcode)} />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 7: Additional Information */}
-      {currentStep === 7 && (
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center">
-              {renderSectionNumber(7)}
-              Additional Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="specialInstructions">Special Instructions</Label>
-                <Textarea 
-                  value={formData.specialInstructions}
-                  onChange={(e) => {
-                    const newFormData = { ...formData, specialInstructions: e.target.value };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}
-                  placeholder="Any special instructions or requirements..."
-                />
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="smsReminders" 
-                  checked={formData.smsReminders || false}
-                  onCheckedChange={(checked) => {
-                    const newFormData = { ...formData, smsReminders: checked };
-                    setFormData(newFormData);
-                    updateState(newFormData, selectedExtras);
-                  }}
-                />
-                <Label htmlFor="smsReminders" className="text-sm">
-                  Send me SMS reminders about my booking
-                </Label>
-              </div>
-            </div>
-            
-            <NavigationButtons />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 8: Tip Selection - Only show if tip step exists */}
-      {currentStep === 8 && steps.some(step => step.name === 'tip') && (
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center">
-              {renderSectionNumber(8)}
-              <CreditCard className="h-5 w-5 mr-2" />
-              Tip Selection
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <Label>Tip Amount</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                  {TIP_OPTIONS.map((tip) => (
-                    <Button
-                      key={tip.value}
-                      type="button"
-                      variant={formData.tipPercentage === tip.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        const newFormData = { ...formData, tipPercentage: tip.value };
-                        setFormData(newFormData);
-                        updateState(newFormData, selectedExtras);
-                      }}
-                      className="text-xs"
-                    >
-                      {tip.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              
-              {formData.tipPercentage === -1 && (
-                <div>
-                  <Label htmlFor="customTip">Custom Tip Amount (£)</Label>
-                  <Input 
-                    type="number" 
-                    value={formData.customTip}
-                    onChange={(e) => {
-                      const newFormData = { ...formData, customTip: e.target.value };
-                      setFormData(newFormData);
-                      updateState(newFormData, selectedExtras);
-                    }}
-                    placeholder="Enter custom tip amount"
-                  />
-                </div>
-              )}
-            </div>
-            
-            <NavigationButtons />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 9: Review & Submit */}
-      {currentStep === totalSteps && (
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center">
-              {renderSectionNumber(totalSteps)}
-              Review & Submit
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 bg-muted rounded-lg">
-                <h4 className="font-medium mb-2">Booking Summary</h4>
-                <div className="text-sm space-y-1">
-                  <p><strong>Service:</strong> {SERVICE_DATA[formData.serviceType as keyof typeof SERVICE_DATA]?.name}</p>
-                  <p><strong>Date:</strong> {formData.bookingDate}</p>
-                  <p><strong>Time:</strong> {selectedTimeSlot}</p>
-                  <p><strong>Duration:</strong> {formData.duration} hours</p>
-                  {selectedExtras.length > 0 && (
-                    <p><strong>Extras:</strong> {selectedExtras.map(e => `${e.name} (x${e.quantity || 1})`).join(', ')}</p>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex justify-between pt-4 border-t">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={previousStep}
-                  className="flex items-center"
-                >
-                  <ChevronLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
-                <Button 
-                  type="submit" 
-                  className="flex items-center"
-                  disabled={createBookingMutation.isPending}
-                >
-                  {createBookingMutation.isPending ? 'Creating Booking...' : 'Confirm Booking'}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          default:
+            return null;
+        }
+      })}
     </form>
   );
 }

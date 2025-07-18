@@ -1,0 +1,130 @@
+PROBLEM SUMMARY:
+These three service types (airbnb, jet, commercial) are getting stuck at step 3 of the booking wizard and cannot progress further. Users see the step indicator but no form content renders, making it impossible to continue.
+
+ROOT CAUSE ANALYSIS:
+The issue is in client/src/components/booking-form-wizard.tsx where step filtering logic doesn't match step rendering logic:
+
+Step Filtering (Lines 210-218): These services have extras and tip steps removed, creating a 7-step structure: [service, property, datetime, customer, address, additional, review]
+
+Step Rendering Mismatch (Line 475): The code checks currentStep === 3 && steps.some(step => step.name === 'extras') but for filtered services, step 3 is datetime (not extras), and steps.some(step => step.name === 'extras') returns false
+
+Missing Content: Step 3 has no matching render block, so no form content appears
+
+SPECIFIC FIXES NEEDED:
+
+Fix 1 - Replace Step Rendering Logic (Around Line 475):
+Replace the current step rendering approach with step-name-based rendering instead of hardcoded step numbers:
+
+// Replace ALL step rendering conditions with this dynamic approach:
+{steps.map((step, index) => {
+  const stepNumber = index + 1;
+  const stepName = step.name;
+  
+  if (currentStep !== stepNumber) return null;
+  
+  switch (stepName) {
+    case 'service':
+      return (
+        // Step 1: Service Type Selection content
+      );
+    
+    case 'property':
+      return (
+        // Step 2: Property Details content
+      );
+    
+    case 'extras':
+      return (
+        // Step 3: Additional Services content (only for services that have extras)
+      );
+    
+    case 'datetime':
+      return (
+        // Date & Time content
+      );
+    
+    case 'customer':
+      return (
+        // Customer Details content
+      );
+    
+    case 'address':
+      return (
+        // Address Details content
+      );
+    
+    case 'additional':
+      return (
+        // Additional Information content
+      );
+    
+    case 'tip':
+      return (
+        // Tip Selection content (only for services that have tips)
+      );
+    
+    case 'review':
+      return (
+        // Review & Submit content
+      );
+    
+    default:
+      return null;
+  }
+})}
+Fix 2 - Update Step Structure Function (Lines 210-218):
+Ensure the step filtering is consistent and correct:
+
+const getStepStructure = (serviceType: string) => {
+  const baseSteps = [
+    { id: 1, name: 'service', title: 'Service Type' },
+    { id: 2, name: 'property', title: serviceType === 'jet' ? 'Surface Details' : 'Property Details' },
+    { id: 3, name: 'extras', title: 'Additional Services' },
+    { id: 4, name: 'datetime', title: 'Date & Time' },
+    { id: 5, name: 'customer', title: 'Customer Details' },
+    { id: 6, name: 'address', title: 'Address Details' },
+    { id: 7, name: 'additional', title: 'Additional Information' },
+    { id: 8, name: 'tip', title: 'Tip Selection' },
+    { id: 9, name: 'review', title: 'Review & Submit' }
+  ];
+  
+  // For commercial, jet washing, and airbnb services, skip some steps
+  if (serviceType === 'commercial' || serviceType === 'jet' || serviceType === 'airbnb') {
+    return baseSteps
+      .filter(step => step.name !== 'extras' && step.name !== 'tip')
+      .map((step, index) => ({ ...step, id: index + 1 })); // Reindex IDs
+  }
+  
+  return baseSteps;
+};
+Fix 3 - Remove All Hardcoded Step Numbers:
+Find and replace ALL instances of hardcoded step rendering like:
+
+{currentStep === 3 && steps.some(step => step.name === 'extras') && (
+{currentStep === 4 && (
+{currentStep === 5 && (
+etc.
+Fix 4 - Test All Service Types:
+After implementing the fixes, test each service type:
+
+AirBnB: Should progress through all 7 steps
+Jet Washing: Should progress through all 7 steps
+Commercial: Should progress through all 7 steps
+General/Deep/Tenancy: Should progress through all 9 steps
+REQUIREMENTS:
+
+All service types MUST be able to progress through every step
+Step indicators must show correct progress for each service type
+Form content must render properly for each step
+Navigation buttons must work correctly
+Final submission must work for all service types
+PRIORITY:
+This is a critical bug that completely blocks users from completing bookings for these three service types. Fix immediately.
+
+VERIFICATION:
+
+Select AirBnB service → Fill step 1 → Click Next → Verify step 2 shows bedroom selection
+Fill step 2 → Click Next → Verify step 3 shows Date & Time (not stuck)
+Continue through all remaining steps to completion
+Repeat for Jet Washing and Commercial services
+The core issue is that the step rendering logic assumes a fixed step structure, but the step filtering creates different structures for different service types. The solution is to make the rendering logic dynamic based on the actual step structure for each service type.
